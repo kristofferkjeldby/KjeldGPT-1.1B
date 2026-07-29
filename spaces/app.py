@@ -140,7 +140,7 @@ with gr.Blocks(title="KjeldChat") as demo:
             fn=respond,
             chatbot=gr.Chatbot(
                 elem_id="kjeldchat-box", show_label=False,
-                buttons=["copy", "copy_all", "share"], layout="bubble", avatar_images=None,
+                buttons=[], layout="bubble", avatar_images=None,
                 placeholder=PLACEHOLDER_HTML,
             ),
             textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Type your message...",

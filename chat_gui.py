@@ -60,7 +60,7 @@ HEADER_HTML = """
 # Shown in the empty chat area before the first question. Doubles as the place to set
 # expectations -- one Q/A format, no conversational memory (see chat.py's templates).
 PLACEHOLDER_HTML = """
-<div style="text-align:center; color:#9aa3bd; line-height:1.7;">
+<div style="text-align:center; color:#ffffff; line-height:1.7;">
   <div style="font-size:17px; margin-bottom:6px;">Ask a question</div>
   <div style="font-size:13.5px;">
     Answers are grounded in retrieved Wikipedia passages.<br>
@@ -99,9 +99,12 @@ html, body {
 }
 
 /* ---- header ------------------------------------------------------------- */
+/* Asymmetric padding on purpose: Gradio's column leaves ~11px above this strip, so
+   centring the brand within the strip itself sits it ~5px below the midpoint between
+   the card's top edge and the divider, which is the gap the eye actually reads. */
 #kjeldchat-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 22px; border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: 13px 22px 23px; border-bottom: 1px solid rgba(255,255,255,.06);
 }
 #kjeldchat-header .kc-brand { display: flex; align-items: center; gap: 12px; }
 #kjeldchat-header .kc-avatar {
@@ -117,23 +120,14 @@ html, body {
     border: 1px solid rgba(167, 139, 250, .45); border-radius: 7px;
     background: rgba(124, 58, 237, .12);
 }
-/* The header's action buttons are Gradio's own (Clear / Copy / Share, declared via the
-   Chatbot's `buttons`), not hand-rolled HTML -- they already carry working behaviour.
-   Gradio renders them in the chat panel's top-right corner, so they are lifted into the
-   header strip here and given the surrounding chrome. */
-/* Left in Gradio's own top-right slot rather than absolutely repositioned into the
-   header: the nearest positioned ancestor is one of Gradio's containers, not
-   #kjeldchat-wrap, so an absolute offset here lands over the first message instead. */
-#kjeldchat-wrap .icon-button-wrapper.top-panel {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 2px !important;
-}
-#kjeldchat-wrap .icon-button-wrapper.top-panel button {
-    width: 34px !important; height: 34px !important; border-radius: 10px !important;
-}
-#kjeldchat-wrap .icon-button-wrapper.top-panel button:hover {
-    background: rgba(124,58,237,.18) !important;
-}
+/* Retry is the only control kept. The Chatbot's own buttons are switched off at source
+   (buttons=[]), but Clear and Undo come from ChatInterface rather than that list, so
+   they are hidden here -- by accessible label, which is semantic and stable, rather
+   than by nth-child position within the group. */
+#kjeldchat-wrap .icon-button-wrapper.top-panel { display: none !important; }
+#kjeldchat-wrap button[aria-label="Undo"],
+#kjeldchat-wrap button[aria-label="Copy message"],
+#kjeldchat-wrap button[aria-label="Clear"] { display: none !important; }
 
 /* ---- message bubbles ---------------------------------------------------- */
 #kjeldchat-box { height: 62vh !important; border: none !important; background: transparent !important; }
@@ -199,6 +193,12 @@ form, .form, .styler, .gr-group,
 /* Gradio's icon buttons are transparent, but the wrapper behind them is a white pill. */
 #kjeldchat-wrap .icon-button, #kjeldchat-wrap button.icon-button {
     background: transparent !important; color: var(--kc-muted) !important;
+    border: none !important;
+}
+/* The divider pipes between grouped icons are ::after pseudo-elements on each button,
+   not borders -- clearing the border alone leaves them behind. */
+#kjeldchat-wrap .icon-button::after, #kjeldchat-wrap .icon-button::before {
+    display: none !important; content: none !important;
 }
 #kjeldchat-wrap .icon-button:hover { color: #ede9fe !important; }
 /* Bare icons, no pill or outline behind them. */
@@ -412,10 +412,9 @@ def main():
                 fn=respond,
                 chatbot=gr.Chatbot(
                     elem_id="kjeldchat-box", show_label=False,
-                    # Copy only. Gradio can also render like/dislike thumbs here, but
-                    # nothing in this project consumes the flags -- they would be a
-                    # control that looks functional and isn't.
-                    buttons=["copy", "copy_all", "share"],
+                    # No chatbot-level buttons: Retry is the only control kept, and
+                    # it comes from ChatInterface, not from this list.
+                    buttons=[],
                     layout="bubble",
                     avatar_images=None,
                     placeholder=PLACEHOLDER_HTML,
