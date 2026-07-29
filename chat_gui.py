@@ -136,40 +136,6 @@ html, body {
     overflow: hidden !important;
 }
 
-/* ---- phones --------------------------------------------------------------
-   On a phone the Spaces page's own header takes ~119px and the browser's bottom bar
-   another ~90px of an 852px viewport, leaving roughly 640px -- a 700px card puts the
-   composer below the fold, off-screen. Measured on the live Space at 393x852. The card
-   also gives back its side margins, since horizontal room is the scarce thing here. */
-@media (max-width: 640px) {
-    #kjeldchat-wrap {
-        margin: 12px auto !important;
-        height: min(calc(100vh - 24px), 540px) !important;
-        max-height: min(calc(100vh - 24px), 540px) !important;
-        min-height: 320px !important;
-        border-radius: 18px !important;
-        /* The desktop glow spreads 60px, which on a phone covers most of the visible
-           area around the card and reads as a lighter, purple-tinted background. */
-        box-shadow: 0 10px 30px -22px rgba(88, 28, 135, .5) !important;
-    }
-    #kjeldchat-header { padding: 12px 14px 12px !important; }
-    #kjeldchat-header .kc-brand { gap: 9px !important; }
-    #kjeldchat-header .kc-avatar {
-        width: 34px !important; height: 34px !important; flex: 0 0 34px !important;
-    }
-    #kjeldchat-header .kc-avatar svg { width: 26px !important; height: 26px !important; }
-    #kjeldchat-header .kc-title { font-size: 18px !important; }
-    #kjeldchat-input { padding: 10px 12px 12px !important; }
-    #kjeldchat-input textarea { padding: 12px 14px !important; }
-    /* Keep the send button square with the field at its smaller mobile height. */
-    #kjeldchat-input textarea { min-height: 48px !important; }
-    #kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button,
-    #kjeldchat-input button {
-        width: 48px !important; height: 48px !important; flex: 0 0 48px !important;
-        min-height: 48px !important; margin-left: 8px !important;
-    }
-}
-
 /* ---- header ------------------------------------------------------------- */
 /* Padding chosen so the brand's centre lands on the midpoint between the card's top
    edge and the divider: 19 + half of the 44px mark = 41, and 19+44+18+1 = 82 puts the
@@ -235,7 +201,10 @@ html, body {
    above the header and another between the divider and the transcript. */
 #kjeldchat-wrap .html-container { padding: 0 !important; }
 #kjeldchat-box {
-    flex: 1 1 auto !important; height: auto !important; min-height: 0 !important;
+    /* basis 0, not auto: with auto the box is sized from its content first and only then
+       shrinks, which left it a few px too tall and pushed the composer past the card's
+       bottom edge. basis 0 makes it take exactly the space the header and composer leave. */
+    flex: 1 1 0 !important; height: auto !important; min-height: 0 !important;
     border: none !important; background: transparent !important;
 }
 /* Vertical padding only. Horizontal padding here indents the bubble but not the row's
@@ -320,7 +289,7 @@ form, .form, .styler, .gr-group,
 }
 /* The wrap is the positioning context the top-panel buttons are pinned to. */
 #kjeldchat-wrap { position: relative !important; }
-#kjeldchat-input { padding: 14px 18px 18px !important; }
+#kjeldchat-input { padding: 14px 18px 14px !important; }
 /* Gradio drops a loading overlay with an 80px spinner over the textbox for ~100ms each
    time a message is submitted -- a visible flash in the composer. The chat area already
    shows a typing indicator, so the spinner says nothing new. Safe to hide wholesale:
@@ -372,8 +341,9 @@ form, .form, .styler, .gr-group,
     box-shadow: none !important; white-space: nowrap !important;
     pointer-events: none !important;
     /* 20px matches the message rows' margin, so the pill's right edge lines up with the
-       right edge of the user's question bubbles rather than sitting flush to the panel. */
-    margin-right: 20px !important;
+       right edge of the user's question bubbles rather than sitting flush to the panel.
+       The bottom margin keeps it off the composer, which it otherwise sits flush against. */
+    margin-right: 20px !important; margin-bottom: 6px !important;
 }
 
 /* Errors surface as a Gradio toast plus an in-panel block, neither of which follows the
@@ -413,6 +383,41 @@ footer { display: none !important; }
 
 #kjeldchat-input textarea::-webkit-scrollbar { width: 0; height: 0; }
 #kjeldchat-input textarea { scrollbar-width: none; }
+
+/* ---- phones --------------------------------------------------------------
+   On a phone the Spaces page's own header takes ~119px and the browser's bottom bar
+   another ~90px of an 852px viewport, leaving roughly 640px -- a 700px card puts the
+   composer below the fold, off-screen. Measured on the live Space at 393x852. The card
+   also gives back its side margins, since horizontal room is the scarce thing here. */
+@media (max-width: 640px) {
+    #kjeldchat-wrap {
+        margin: 12px auto !important;
+        height: min(calc(100vh - 24px), 540px) !important;
+        max-height: min(calc(100vh - 24px), 540px) !important;
+        min-height: 320px !important;
+        border-radius: 18px !important;
+        /* The desktop glow spreads 60px, which on a phone covers most of the visible
+           area around the card and reads as a lighter, purple-tinted background. */
+        box-shadow: 0 10px 30px -22px rgba(88, 28, 135, .5) !important;
+    }
+    #kjeldchat-header { padding: 12px 14px 12px !important; }
+    #kjeldchat-header .kc-brand { gap: 9px !important; }
+    #kjeldchat-header .kc-avatar {
+        width: 34px !important; height: 34px !important; flex: 0 0 34px !important;
+    }
+    #kjeldchat-header .kc-avatar svg { width: 26px !important; height: 26px !important; }
+    #kjeldchat-header .kc-title { font-size: 18px !important; }
+    #kjeldchat-input { padding: 10px 12px 10px !important; }
+    #kjeldchat-input textarea { padding: 12px 14px !important; }
+    /* Keep the send button square with the field at its smaller mobile height. */
+    #kjeldchat-input textarea { min-height: 48px !important; }
+    #kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button,
+    #kjeldchat-input button {
+        width: 48px !important; height: 48px !important; flex: 0 0 48px !important;
+        min-height: 48px !important; margin-left: 8px !important;
+    }
+}
+
 """
 
 def build_respond_fn(model, tokenizer, eot_id, no_penalty_ids, retriever, device, args):
