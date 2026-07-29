@@ -84,7 +84,8 @@ from model import GPT, GPTConfig
 from rag_rerank import Reranker
 from rag_retrieve import Retriever
 from chat import continuation_byte_token_ids
-from chat_gui import CSS, HIDE_OUTER_SCROLLBAR_JS, LOGO_PATH, THEME, build_respond_fn
+from chat_gui import (CSS, HEADER_HTML, HIDE_OUTER_SCROLLBAR_JS, PLACEHOLDER_HTML, THEME,
+                       build_respond_fn)
 
 # ZeroGPU requires module-level .to("cuda") -- a CUDA emulation mode is active out here,
 # and real CUDA inside @spaces.GPU. Moving the model inside the decorated function
@@ -130,19 +131,24 @@ def respond(message, history):
     yield from _respond(message, history)
 
 
+# Mirrors chat_gui.main()'s layout exactly -- the styling constants are imported rather
+# than copied, so the Space and the local GUI stay one design.
 with gr.Blocks(title="KjeldChat") as demo:
     with gr.Column(elem_id="kjeldchat-wrap"):
-        gr.Image(
-            value=LOGO_PATH, elem_id="kjeldchat-logo",
-            show_label=False, container=False, interactive=False,
-            buttons=[],
-        )
-        gr.ChatInterface(
+        gr.HTML(HEADER_HTML)
+        chat = gr.ChatInterface(
             fn=respond,
-            chatbot=gr.Chatbot(elem_id="kjeldchat-box", show_label=False),
-            textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Ask a question...",
+            chatbot=gr.Chatbot(
+                elem_id="kjeldchat-box", show_label=False,
+                buttons=["copy"], layout="bubble", avatar_images=None,
+                placeholder=PLACEHOLDER_HTML,
+            ),
+            textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Type your message...",
                                 lines=1, max_lines=6, show_label=False),
+            submit_btn=True,
             fill_width=True,
         )
+        clear_proxy = gr.Button("Clear", elem_id="kc-clear-proxy")
+        clear_proxy.click(lambda: ([], []), outputs=[chat.chatbot, chat.chatbot_state])
 
 demo.launch(theme=THEME, css=CSS, js=HIDE_OUTER_SCROLLBAR_JS)
