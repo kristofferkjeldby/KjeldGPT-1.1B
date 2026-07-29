@@ -67,10 +67,7 @@ HEADER_HTML = """
 PLACEHOLDER_HTML = """
 <div>
   <div>Ask a question</div>
-  <div>
-    Answers are grounded in retrieved Wikipedia passages.<br>
-    Each question is answered independently -- there is no conversational memory.
-  </div>
+  <div>Each question is answered independently</div>
 </div>
 """
 
@@ -117,7 +114,7 @@ html, body {
 
 /* The outer card the whole app sits in -- the rounded, hairline-bordered panel. */
 #kjeldchat-wrap {
-    max-width: 1000px !important; margin: 0 auto !important; padding: 0 !important;
+    max-width: 1000px !important; margin: 24px auto !important; padding: 0 !important;
     gap: 0 !important;
     /* Shrinks with the window, but capped in px. The cap is what makes this safe inside
        a Space: the parent iframe is sized to our content, so a purely viewport-relative
@@ -126,8 +123,8 @@ html, body {
        settle on. 700px also leaves the embed clear of HF's ~50px header on a standard
        window. This cannot be conditioned on being embedded: Gradio 6.20 runs neither
        launch(js=...) nor <script> inside gr.HTML, so there is no hook to detect it. */
-    height: min(100vh, 700px) !important;
-    max-height: min(100vh, 700px) !important;
+    height: min(calc(100vh - 48px), 700px) !important;
+    max-height: min(calc(100vh - 48px), 700px) !important;
     /* Floor: below this the transcript is too short to read a reply in, so the card
        stops shrinking. Set well under any realistic desktop window so it only bites on
        a deliberately tiny one. */
@@ -146,9 +143,9 @@ html, body {
    also gives back its side margins, since horizontal room is the scarce thing here. */
 @media (max-width: 640px) {
     #kjeldchat-wrap {
-        margin: 0 auto !important;
-        height: min(100vh, 560px) !important;
-        max-height: min(100vh, 560px) !important;
+        margin: 12px auto !important;
+        height: min(calc(100vh - 24px), 540px) !important;
+        max-height: min(calc(100vh - 24px), 540px) !important;
         min-height: 320px !important;
         border-radius: 18px !important;
         /* The desktop glow spreads 60px, which on a phone covers most of the visible
