@@ -22,6 +22,9 @@ no pretrained base, no distillation from a larger model. Answers are grounded by
 retrieval over a Wikipedia passage index rather than recalled from the model's own
 (thin) parametric memory.
 
+> **Answers are machine-generated and unreviewed — they can be wrong.** This is a hobby
+> project and a demonstration of a small model, not a reference to rely on.
+
 - **Model:** [KjeldChat 1.1B](https://huggingface.co/kristofferkjeldby/KjeldChat-1.1B) — Q/A-finetuned from [KjeldGPT 1.1B](https://huggingface.co/kristofferkjeldby/KjeldGPT-1.1B)
 - **Code:** [github.com/kristofferkjeldby/KjeldGPT-1.1B](https://github.com/kristofferkjeldby/KjeldGPT-1.1B)
 
@@ -35,8 +38,9 @@ This is a hobby project, and a 1.1B model is small. Calibrate accordingly:
 - **Each turn is independent.** There is no conversational memory; follow-up questions
   that depend on the previous turn won't resolve.
 - **It will sometimes be wrong,** and occasionally confidently so — including ignoring
-  a correct retrieved passage. Reducing that is exactly what the project's evaluation
-  harness measures.
+  a correct retrieved passage, or stating something plainly false when retrieval doesn't
+  cover the question. Nothing it produces is reviewed before you see it. Reducing the
+  error rate is exactly what the project's evaluation harness measures.
 - **It pushes back on false premises.** Asking about something that didn't happen is
   worth a try — correcting the premise instead of playing along was specifically
   trained, with ~4,000 targeted pairs, and it's the model's strongest result relative
