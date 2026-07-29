@@ -59,10 +59,15 @@ HEADER_HTML = """
 
 # Shown in the empty chat area before the first question. Doubles as the place to set
 # expectations -- one Q/A format, no conversational memory (see chat.py's templates).
+#
+# Deliberately attribute-free: Gradio sanitises the placeholder's HTML and strips both
+# `id` and `style`, so anything set here is silently dropped (it survives locally but
+# not on a Space, which is a nasty way to find out). All of the styling lives in CSS
+# instead, keyed on Gradio's own .placeholder class and this markup's child order.
 PLACEHOLDER_HTML = """
-<div id="kc-intro" style="text-align:center; line-height:1.7;">
-  <div style="font-size:17px; margin-bottom:6px;">Ask a question</div>
-  <div style="font-size:13.5px;">
+<div>
+  <div>Ask a question</div>
+  <div>
     Answers are grounded in retrieved Wikipedia passages.<br>
     Each question is answered independently -- there is no conversational memory.
   </div>
@@ -130,10 +135,21 @@ html, body {
 #kjeldchat-wrap button[aria-label="Clear"] { display: none !important; }
 
 /* ---- empty-state intro --------------------------------------------------- */
-/* Gradio renders the placeholder inside a span.md whose rules colour descendants
-   directly, which beats an inherited colour on the block -- so an inline style on the
-   wrapper leaves the text at Gradio's slate. Set on every node instead. */
-#kc-intro, #kc-intro * { color: #ffffff !important; }
+/* Keyed on Gradio's own .placeholder class rather than an id or inline styles in
+   PLACEHOLDER_HTML, both of which Gradio's sanitiser strips. The colour is set on every
+   descendant because span.md colours its children directly, which beats inheritance. */
+#kjeldchat-wrap .placeholder, #kjeldchat-wrap .placeholder * {
+    color: #ffffff !important;
+}
+#kjeldchat-wrap .placeholder .md > div {
+    text-align: center !important; line-height: 1.7 !important;
+}
+#kjeldchat-wrap .placeholder .md > div > div:first-child {
+    font-size: 17px !important; margin-bottom: 6px !important;
+}
+#kjeldchat-wrap .placeholder .md > div > div:last-child {
+    font-size: 13.5px !important;
+}
 
 /* ---- message bubbles ---------------------------------------------------- */
 #kjeldchat-box { height: 62vh !important; border: none !important; background: transparent !important; }
