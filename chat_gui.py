@@ -46,9 +46,9 @@ HEADER_HTML = """
     <div class="kc-avatar">
       <!-- Stem and both diagonals are drawn around x=20, the viewBox's centre, so the
            glyph sits centred in the circle once the round caps are accounted for. -->
-      <svg width="30" height="30" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M15 11v18M15 20.5l9.8-9.5M15 20l10 9" stroke="#fff"
-              stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <path d="M14 9v22M14 20.5l11.5-11.5M14 20l12 11" stroke="#fff"
+              stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
     <div class="kc-title">KjeldChat</div>
@@ -60,8 +60,8 @@ HEADER_HTML = """
 # Shown in the empty chat area before the first question. Doubles as the place to set
 # expectations -- one Q/A format, no conversational memory (see chat.py's templates).
 PLACEHOLDER_HTML = """
-<div style="text-align:center; color:#6b7492; line-height:1.7;">
-  <div style="font-size:17px; color:#9aa3bd; margin-bottom:6px;">Ask a question</div>
+<div style="text-align:center; color:#9aa3bd; line-height:1.7;">
+  <div style="font-size:17px; margin-bottom:6px;">Ask a question</div>
   <div style="font-size:13.5px;">
     Answers are grounded in retrieved Wikipedia passages.<br>
     Each question is answered independently -- there is no conversational memory.
@@ -110,7 +110,7 @@ html, body {
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 14px -4px rgba(124, 58, 237, .8);
 }
-#kjeldchat-header .kc-avatar svg { width: 30px; height: 30px; }
+#kjeldchat-header .kc-avatar svg { width: 34px; height: 34px; }
 #kjeldchat-header .kc-title { font-size: 22px; font-weight: 650; color: #f2f4fb; letter-spacing: .2px; }
 #kjeldchat-header .kc-badge {
     font-size: 12px; font-weight: 600; color: #c4b5fd; padding: 3px 9px;
@@ -125,10 +125,8 @@ html, body {
    header: the nearest positioned ancestor is one of Gradio's containers, not
    #kjeldchat-wrap, so an absolute offset here lands over the first message instead. */
 #kjeldchat-wrap .icon-button-wrapper.top-panel {
-    background: rgba(255,255,255,.02) !important;
-    border: 1px solid rgba(255,255,255,.09) !important;
-    border-radius: 12px !important; box-shadow: none !important;
-    padding: 2px !important;
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 2px !important;
 }
 #kjeldchat-wrap .icon-button-wrapper.top-panel button {
     width: 34px !important; height: 34px !important; border-radius: 10px !important;
@@ -165,10 +163,11 @@ html, body {
 }
 #kjeldchat-box .message.user, #kjeldchat-box .message.user * { color: #fff !important; }
 
-/* Only the bot bubble is capped. Capping .message generally also hits the user bubble,
-   whose row is sized to its content -- a percentage there collapses it to a few words
-   per line. */
-#kjeldchat-box .message.bot { max-width: 74% !important; }
+/* Cap in px, not %. The bubble's parent is shrink-to-fit, so a percentage max-width is
+   circular -- the browser resolves it against the shrunken width and the bubble ends up
+   ~190px, wrapping a one-line answer onto two. Same trap collapsed the user bubble
+   earlier, which is why only the bot bubble is capped at all. */
+#kjeldchat-box .message.bot { max-width: 660px !important; }
 
 #kjeldchat-box .message-bubble-border { border: none !important; }
 #kjeldchat-box .avatar-container { display: none !important; }
@@ -176,9 +175,8 @@ html, body {
 /* Gradio's per-message icon buttons (copy, retry, undo) default to a white pill. */
 #kjeldchat-box .message-buttons, #kjeldchat-box .message-buttons-left,
 #kjeldchat-box .message-buttons-right {
-    background: rgba(255,255,255,.03) !important;
-    border: 1px solid rgba(255,255,255,.07) !important;
-    border-radius: 12px !important;
+    background: transparent !important; border: none !important;
+    box-shadow: none !important;
 }
 #kjeldchat-box .icon-button, #kjeldchat-box button.icon-button {
     background: transparent !important; color: var(--kc-muted) !important;
@@ -203,10 +201,10 @@ form, .form, .styler, .gr-group,
     background: transparent !important; color: var(--kc-muted) !important;
 }
 #kjeldchat-wrap .icon-button:hover { color: #ede9fe !important; }
+/* Bare icons, no pill or outline behind them. */
 #kjeldchat-wrap .icon-button-wrapper {
-    background: rgba(255,255,255,.04) !important;
-    border: 1px solid rgba(255,255,255,.07) !important;
-    border-radius: 10px !important; box-shadow: none !important;
+    background: transparent !important; border: none !important;
+    box-shadow: none !important;
 }
 /* The wrap is the positioning context the top-panel buttons are pinned to. */
 #kjeldchat-wrap { position: relative !important; }
@@ -216,7 +214,8 @@ form, .form, .styler, .gr-group,
     border: 1px solid rgba(255,255,255,.07) !important;
     border-radius: 14px !important; padding: 16px 18px !important;
 }
-#kjeldchat-input textarea::placeholder { color: #6b7492 !important; }
+/* Same grey as the empty-state's "Ask a question", so the two prompts read as one voice. */
+#kjeldchat-input textarea::placeholder { color: #9aa3bd !important; opacity: 1 !important; }
 #kjeldchat-input textarea:focus {
     border-color: rgba(167,139,250,.55) !important;
     box-shadow: 0 0 0 3px rgba(124,58,237,.16) !important;
