@@ -131,7 +131,12 @@ html, body {
 
 /* ---- message bubbles ---------------------------------------------------- */
 #kjeldchat-box { height: 62vh !important; border: none !important; background: transparent !important; }
-#kjeldchat-box .message-row { padding: 4px 18px !important; }
+/* Vertical padding only. Horizontal padding here indents the bubble but not the row's
+   other children -- the Retry button and the pending indicator sit at the row's own
+   left edge -- so any left/right value shows up as a misalignment, and as a sideways
+   jump when the pending indicator is replaced by the bubble. The row already carries a
+   20px margin, which is the inset. */
+#kjeldchat-box .message-row { padding: 4px 0 !important; }
 
 /* User: filled violet gradient, right-aligned. */
 #kjeldchat-box .user-message .message-content,
