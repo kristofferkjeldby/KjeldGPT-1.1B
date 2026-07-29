@@ -84,8 +84,7 @@ from model import GPT, GPTConfig
 from rag_rerank import Reranker
 from rag_retrieve import Retriever
 from chat import continuation_byte_token_ids
-from chat_gui import (CSS, HEADER_HTML, HIDE_OUTER_SCROLLBAR_JS, PLACEHOLDER_HTML, THEME,
-                       build_respond_fn)
+from chat_gui import CSS, HEADER_HTML, PLACEHOLDER_HTML, THEME, build_respond_fn
 
 # ZeroGPU requires module-level .to("cuda") -- a CUDA emulation mode is active out here,
 # and real CUDA inside @spaces.GPU. Moving the model inside the decorated function
@@ -149,4 +148,4 @@ with gr.Blocks(title="KjeldChat") as demo:
             fill_width=True,
         )
 
-demo.launch(theme=THEME, css=CSS, js=HIDE_OUTER_SCROLLBAR_JS)
+demo.launch(theme=THEME, css=CSS)

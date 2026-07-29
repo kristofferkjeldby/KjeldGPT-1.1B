@@ -75,12 +75,25 @@ PLACEHOLDER_HTML = """
 """
 
 CSS = """
+/* Deliberately no height here. Inside a Space the page runs in an iframe that the parent
+   resizes to our reported content height -- pinning html/body to 100vh makes the content
+   height equal the frame height, so the frame can grow but never shrink back. Leaving it
+   to the content lets the frame settle on the card's actual size. */
 html, body {
-    height: 100vh !important; max-height: 100vh !important; overflow: hidden !important;
+    overflow: hidden !important;
+    height: auto !important; min-height: 0 !important;
+    /* Set here, not just on the container: with html/body no longer stretching to the
+       viewport, only a background on body propagates to the canvas and covers the area
+       below the card. Literal rather than var(--kc-bg), which is defined further in. */
+    background: #070a14 !important;
 }
 [class*="gradio-container"] {
     max-width: 100% !important; width: 100% !important;
-    max-height: 100vh !important; overflow: hidden !important;
+    overflow: hidden !important;
+    /* Same reason: Gradio's container is a flex child that grows to fill, which would
+       keep the reported content height equal to the frame height. */
+    height: auto !important; min-height: 0 !important; max-height: none !important;
+    flex-grow: 0 !important;
     --input-text-size: var(--chatbot-text-size);
     --kc-bg: #070a14;
     --kc-panel: #0d1120;
@@ -96,10 +109,15 @@ html, body {
 #kjeldchat-wrap {
     max-width: 1000px !important; margin: 24px auto !important; padding: 0 !important;
     gap: 0 !important;
-    /* Fill the viewport minus the 24px margin top and bottom, so the card grows and
-       shrinks with the browser window instead of standing at a fixed height. */
-    height: calc(100vh - 48px) !important;
-    max-height: calc(100vh - 48px) !important;
+    /* Shrinks with the window, but capped in px. The cap is what makes this safe inside
+       a Space: the parent iframe is sized to our content, so a purely viewport-relative
+       height feeds back into itself (measured: the frame went 958px then 1038px inside
+       an 800px window, and kept climbing). A px ceiling gives that loop a fixed point to
+       settle on. 700px also leaves the embed clear of HF's ~50px header on a standard
+       window. This cannot be conditioned on being embedded: Gradio 6.20 runs neither
+       launch(js=...) nor <script> inside gr.HTML, so there is no hook to detect it. */
+    height: min(calc(100vh - 48px), 700px) !important;
+    max-height: min(calc(100vh - 48px), 700px) !important;
     /* Floor: below this the transcript is too short to read a reply in, so the card
        stops shrinking. Set well under any realistic desktop window so it only bites on
        a deliberately tiny one. */
@@ -281,8 +299,10 @@ form, .form, .styler, .gr-group,
 #kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button,
 #kjeldchat-input button {
     background: linear-gradient(135deg, var(--kc-accent), var(--kc-accent-2)) !important;
-    border: none !important; border-radius: 12px !important; color: #fff !important;
-    width: 40px !important; height: 40px !important; flex: 0 0 40px !important;
+    border: none !important; border-radius: 14px !important; color: #fff !important;
+    /* Square, matching the textarea's 56px height so the two read as one control. */
+    width: 56px !important; height: 56px !important; flex: 0 0 56px !important;
+    min-height: 56px !important;
     align-self: center !important; margin-left: 10px !important;
 }
 #kjeldchat-input button:hover { filter: brightness(1.12) !important; }
@@ -346,41 +366,6 @@ footer { display: none !important; }
 #kjeldchat-input textarea::-webkit-scrollbar { width: 0; height: 0; }
 #kjeldchat-input textarea { scrollbar-width: none; }
 """
-
-# html/body are outside the css= injection's reach (same reason the background-color
-# fix earlier needed a workaround) -- direct JS is the only way to suppress the outer
-# page's own scrollbar, letting only #kjeldchat-box (styled above) scroll. overflow:
-# hidden alone did nothing: <body> is display:flex/flex-grow:1 with no fixed height,
-# and <html> uses min-height:100% (not height:100%), so taller-than-viewport content
-# just grows the document instead of clipping -- height must be pinned to 100vh
-# alongside overflow:hidden for the outer scrollbar to actually disappear.
-HIDE_OUTER_SCROLLBAR_JS = """
-() => {
-    // Gradio boots in light mode unless told otherwise, which leaves its own components
-    // (textbox, icon buttons, message text) white-on-white inside the dark shell the CSS
-    // paints. Adding .dark switches Gradio's own variables over; the header's toggle then
-    // flips this same class.
-    if (!document.documentElement.classList.contains('light-forced')) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-    }
-
-    const pin = () => {
-        document.documentElement.style.overflow = 'hidden';
-        document.documentElement.style.height = '100vh';
-        document.body.style.overflow = 'hidden';
-        document.body.style.height = '100vh';
-    };
-    pin();
-    // Re-applied on a short delay and on any later DOM change -- the SPA's own
-    // post-mount layout pass (chat history loading, font metrics settling) can
-    // overwrite a same-tick style set, and this is cheap enough to just keep reasserting.
-    setTimeout(pin, 300);
-    new MutationObserver(pin).observe(document.body, {childList: true, subtree: true});
-
-}
-"""
-
 
 def build_respond_fn(model, tokenizer, eot_id, no_penalty_ids, retriever, device, args):
     def respond(message, history):
@@ -498,7 +483,7 @@ def main():
                 submit_btn=True,
                 fill_width=True,
             )
-    demo.launch(server_port=args.port, share=args.share, theme=THEME, css=CSS, js=HIDE_OUTER_SCROLLBAR_JS)
+    demo.launch(server_port=args.port, share=args.share, theme=THEME, css=CSS)
 
 
 if __name__ == "__main__":
