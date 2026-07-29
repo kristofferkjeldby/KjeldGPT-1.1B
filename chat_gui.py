@@ -44,27 +44,15 @@ HEADER_HTML = """
 <div id="kjeldchat-header">
   <div class="kc-brand">
     <div class="kc-avatar">
+      <!-- Stem and both diagonals are drawn around x=20, the viewBox's centre, so the
+           glyph sits centred in the circle once the round caps are accounted for. -->
       <svg width="30" height="30" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M13 10.5v19M13 20l9.5-9.5M13.8 19.2l9.7 10.3" stroke="#fff"
-              stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 11v18M15 20.5l9.8-9.5M15 20l10 9" stroke="#fff"
+              stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
     <div class="kc-title">KjeldChat</div>
     <div class="kc-badge">1.1B</div>
-  </div>
-  <div class="kc-actions">
-    <button id="kc-theme" class="kc-icon-btn" title="Toggle light / dark">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-           stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/>
-        <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6
-                 M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>
-    </button>
-    <button id="kc-clear" class="kc-icon-btn" title="Clear conversation">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 7h16M9.5 7V5.2h5V7M6.5 7l.9 12.1h9.2L17.5 7"/>
-        <path d="M10.4 10.6v6M13.6 10.6v6"/></svg>
-    </button>
   </div>
 </div>
 """
@@ -129,26 +117,24 @@ html, body {
     border: 1px solid rgba(167, 139, 250, .45); border-radius: 7px;
     background: rgba(124, 58, 237, .12);
 }
-#kjeldchat-header .kc-actions { display: flex; gap: 10px; }
-#kjeldchat-header .kc-icon-btn {
-    width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
-    background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.09);
-    color: var(--kc-muted); display: flex; align-items: center; justify-content: center;
-    transition: color .15s ease, border-color .15s ease, background .15s ease;
+/* The header's action buttons are Gradio's own (Clear / Copy / Share, declared via the
+   Chatbot's `buttons`), not hand-rolled HTML -- they already carry working behaviour.
+   Gradio renders them in the chat panel's top-right corner, so they are lifted into the
+   header strip here and given the surrounding chrome. */
+/* Left in Gradio's own top-right slot rather than absolutely repositioned into the
+   header: the nearest positioned ancestor is one of Gradio's containers, not
+   #kjeldchat-wrap, so an absolute offset here lands over the first message instead. */
+#kjeldchat-wrap .icon-button-wrapper.top-panel {
+    background: rgba(255,255,255,.02) !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    border-radius: 12px !important; box-shadow: none !important;
+    padding: 2px !important;
 }
-/* flex: the button is a flex container, so an svg with no basis gets shrunk to a
-   slice. stroke: Gradio sets `stroke` on svg globally, and CSS beats the element's
-   own stroke="currentColor" attribute -- without this the icons draw in its dark
-   slate on a dark button, i.e. invisibly. */
-#kjeldchat-header .kc-icon-btn svg {
-    width: 19px !important; height: 19px !important; flex: 0 0 19px;
-    /* Not currentColor: Gradio sets `color` on the svg element itself, so currentColor
-       resolves to its dark slate rather than to the button's colour. */
-    stroke: #9aa3bd !important;
+#kjeldchat-wrap .icon-button-wrapper.top-panel button {
+    width: 34px !important; height: 34px !important; border-radius: 10px !important;
 }
-#kjeldchat-header .kc-icon-btn:hover svg { stroke: #ede9fe !important; }
-#kjeldchat-header .kc-icon-btn:hover {
-    color: #ede9fe; border-color: rgba(167,139,250,.5); background: rgba(124,58,237,.15);
+#kjeldchat-wrap .icon-button-wrapper.top-panel button:hover {
+    background: rgba(124,58,237,.18) !important;
 }
 
 /* ---- message bubbles ---------------------------------------------------- */
@@ -222,9 +208,8 @@ form, .form, .styler, .gr-group,
     border: 1px solid rgba(255,255,255,.07) !important;
     border-radius: 10px !important; box-shadow: none !important;
 }
-/* Gradio puts its own Clear in the chat panel's top-right; the header already has one,
-   and two trash icons in one view invites the "which of these does what?" pause. */
-#kjeldchat-wrap .icon-button-wrapper.top-panel { display: none !important; }
+/* The wrap is the positioning context the top-panel buttons are pinned to. */
+#kjeldchat-wrap { position: relative !important; }
 #kjeldchat-input { padding: 14px 18px 18px !important; }
 #kjeldchat-input textarea {
     background: #141824 !important; color: #e8ebf5 !important;
@@ -241,6 +226,44 @@ form, .form, .styler, .gr-group,
     border: none !important; border-radius: 11px !important; color: #fff !important;
 }
 
+/* ---- generation status ("processing | 3.7s", tokens/s) ------------------- */
+/* Pinned to the panel's bottom-right and taken out of flow entirely: left in normal
+   flow its wrapper reserves space, so the row above nudges as the text appears,
+   changes width and disappears again. */
+#kjeldchat-wrap .wrap.default.minimal, #kjeldchat-wrap .wrap.translucent {
+    position: absolute !important; inset: auto 14px 12px auto !important;
+    width: auto !important; height: auto !important; min-height: 0 !important;
+    background: transparent !important; padding: 0 !important; border: none !important;
+}
+#kjeldchat-wrap .progress-text, #kjeldchat-wrap .meta-text {
+    background: rgba(23, 27, 43, .92) !important;
+    color: #b9a7f5 !important;
+    border: 1px solid rgba(167, 139, 250, .32) !important;
+    border-radius: 999px !important;
+    font-size: 11.5px !important; padding: 3px 11px !important;
+    box-shadow: none !important; white-space: nowrap !important;
+    pointer-events: none !important;
+}
+
+/* Errors surface as a Gradio toast plus an in-panel block, neither of which follows the
+   theme -- on the Space a ZeroGPU quota error rendered as a full-height white sheet over
+   the transcript. Worth styling: quota and cold-start errors are the ones visitors are
+   most likely to actually see. */
+/* .toast-wrap is the always-present positioning container, not the toast itself -- give
+   it a background or border and it draws a permanent hairline across the top. */
+.toast-wrap { background: transparent !important; border: none !important; }
+.toast-body, .toast-text, .error, .error-content,
+#kjeldchat-box .error, #kjeldchat-wrap .error {
+    background: #1a1020 !important; color: #fecdd3 !important;
+    border: 1px solid rgba(244, 63, 94, .4) !important;
+    border-radius: 14px !important; box-shadow: none !important;
+}
+.toast-title, .toast-details, .toast-icon, .toast-close { color: #fda4af !important; }
+/* The in-panel error block is sized to the chat area and pushes the layout around. */
+#kjeldchat-box .error {
+    height: auto !important; max-height: 160px !important; margin: 12px !important;
+}
+
 footer { display: none !important; }
 
 /* scrollbar styling -- WebKit (Chrome/Safari/Edge) */
@@ -253,11 +276,6 @@ footer { display: none !important; }
 
 #kjeldchat-input textarea::-webkit-scrollbar { width: 0; height: 0; }
 #kjeldchat-input textarea { scrollbar-width: none; }
-
-/* The header's Clear icon is plain HTML, so it can't own a Gradio event. This is the
-   real gr.Button it forwards to -- hidden here rather than with visible=False, which
-   would leave nothing in the DOM for the header button to click. */
-#kc-clear-proxy { display: none !important; }
 """
 
 # html/body are outside the css= injection's reach (same reason the background-color
@@ -291,32 +309,6 @@ HIDE_OUTER_SCROLLBAR_JS = """
     setTimeout(pin, 300);
     new MutationObserver(pin).observe(document.body, {childList: true, subtree: true});
 
-    // Header actions. These bind to elements this file owns (HEADER_HTML's own ids and
-    // #kc-clear-proxy), never to Gradio's internal markup, so a Gradio upgrade can
-    // restyle the chat area without silently breaking them.
-    const wire = () => {
-        const theme = document.querySelector('#kc-theme');
-        if (theme && !theme.dataset.bound) {
-            theme.dataset.bound = '1';
-            theme.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                document.body.classList.toggle('dark');
-            });
-        }
-        // The visible Clear icon forwards to the hidden gr.Button, which is what
-        // actually resets both the chatbot and ChatInterface's history state.
-        const clear = document.querySelector('#kc-clear');
-        if (clear && !clear.dataset.bound) {
-            clear.dataset.bound = '1';
-            clear.addEventListener('click', () => {
-                const proxy = document.querySelector('#kc-clear-proxy button')
-                            || document.querySelector('#kc-clear-proxy');
-                if (proxy) proxy.click();
-            });
-        }
-    };
-    wire();
-    new MutationObserver(wire).observe(document.body, {childList: true, subtree: true});
 }
 """
 
@@ -424,7 +416,7 @@ def main():
                     # Copy only. Gradio can also render like/dislike thumbs here, but
                     # nothing in this project consumes the flags -- they would be a
                     # control that looks functional and isn't.
-                    buttons=["copy"],
+                    buttons=["copy", "copy_all", "share"],
                     layout="bubble",
                     avatar_images=None,
                     placeholder=PLACEHOLDER_HTML,
@@ -434,10 +426,6 @@ def main():
                 submit_btn=True,
                 fill_width=True,
             )
-            clear_proxy = gr.Button("Clear", elem_id="kc-clear-proxy")
-            # Resets the visible transcript *and* ChatInterface's own history state --
-            # clearing only the former would let old turns reappear on the next reply.
-            clear_proxy.click(lambda: ([], []), outputs=[chat.chatbot, chat.chatbot_state])
     demo.launch(server_port=args.port, share=args.share, theme=THEME, css=CSS, js=HIDE_OUTER_SCROLLBAR_JS)
 
 

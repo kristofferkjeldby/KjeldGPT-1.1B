@@ -140,7 +140,7 @@ with gr.Blocks(title="KjeldChat") as demo:
             fn=respond,
             chatbot=gr.Chatbot(
                 elem_id="kjeldchat-box", show_label=False,
-                buttons=["copy"], layout="bubble", avatar_images=None,
+                buttons=["copy", "copy_all", "share"], layout="bubble", avatar_images=None,
                 placeholder=PLACEHOLDER_HTML,
             ),
             textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Type your message...",
@@ -148,7 +148,5 @@ with gr.Blocks(title="KjeldChat") as demo:
             submit_btn=True,
             fill_width=True,
         )
-        clear_proxy = gr.Button("Clear", elem_id="kc-clear-proxy")
-        clear_proxy.click(lambda: ([], []), outputs=[chat.chatbot, chat.chatbot_state])
 
 demo.launch(theme=THEME, css=CSS, js=HIDE_OUTER_SCROLLBAR_JS)
