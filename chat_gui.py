@@ -84,8 +84,10 @@ html, body {
     height: auto !important; min-height: 0 !important;
     /* Set here, not just on the container: with html/body no longer stretching to the
        viewport, only a background on body propagates to the canvas and covers the area
-       below the card. Literal rather than var(--kc-bg), which is defined further in. */
-    background: #070a14 !important;
+       below the card. Literal rather than var(--kc-bg), which is defined further in.
+       The value matches the Spaces page's own dark background, rgb(11,15,25) -- a darker
+       one leaves a visible seam where our iframe starts. */
+    background: #0b0f19 !important;
 }
 [class*="gradio-container"] {
     max-width: 100% !important; width: 100% !important;
@@ -95,7 +97,7 @@ html, body {
     height: auto !important; min-height: 0 !important; max-height: none !important;
     flex-grow: 0 !important;
     --input-text-size: var(--chatbot-text-size);
-    --kc-bg: #070a14;
+    --kc-bg: #0b0f19;
     --kc-panel: #0d1120;
     --kc-line: rgba(139, 92, 246, 0.22);
     --kc-accent: #7c3aed;
@@ -127,6 +129,40 @@ html, body {
     border-radius: 24px !important;
     box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 24px 60px -20px rgba(88, 28, 135, .45) !important;
     overflow: hidden !important;
+}
+
+/* ---- phones --------------------------------------------------------------
+   On a phone the Spaces page's own header takes ~119px and the browser's bottom bar
+   another ~90px of an 852px viewport, leaving roughly 640px -- a 700px card puts the
+   composer below the fold, off-screen. Measured on the live Space at 393x852. The card
+   also gives back its side margins, since horizontal room is the scarce thing here. */
+@media (max-width: 640px) {
+    #kjeldchat-wrap {
+        margin: 10px auto !important;
+        height: min(calc(100vh - 20px), 560px) !important;
+        max-height: min(calc(100vh - 20px), 560px) !important;
+        min-height: 320px !important;
+        border-radius: 18px !important;
+        /* The desktop glow spreads 60px, which on a phone covers most of the visible
+           area around the card and reads as a lighter, purple-tinted background. */
+        box-shadow: 0 10px 30px -22px rgba(88, 28, 135, .5) !important;
+    }
+    #kjeldchat-header { padding: 10px 14px 14px !important; }
+    #kjeldchat-header .kc-brand { gap: 9px !important; }
+    #kjeldchat-header .kc-avatar {
+        width: 34px !important; height: 34px !important; flex: 0 0 34px !important;
+    }
+    #kjeldchat-header .kc-avatar svg { width: 26px !important; height: 26px !important; }
+    #kjeldchat-header .kc-title { font-size: 18px !important; }
+    #kjeldchat-input { padding: 10px 12px 12px !important; }
+    #kjeldchat-input textarea { padding: 12px 14px !important; }
+    /* Keep the send button square with the field at its smaller mobile height. */
+    #kjeldchat-input textarea { min-height: 48px !important; }
+    #kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button,
+    #kjeldchat-input button {
+        width: 48px !important; height: 48px !important; flex: 0 0 48px !important;
+        min-height: 48px !important; margin-left: 8px !important;
+    }
 }
 
 /* ---- header ------------------------------------------------------------- */
