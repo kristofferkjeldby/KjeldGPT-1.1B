@@ -155,7 +155,7 @@ html, body {
            area around the card and reads as a lighter, purple-tinted background. */
         box-shadow: 0 10px 30px -22px rgba(88, 28, 135, .5) !important;
     }
-    #kjeldchat-header { padding: 10px 14px 14px !important; }
+    #kjeldchat-header { padding: 12px 14px 12px !important; }
     #kjeldchat-header .kc-brand { gap: 9px !important; }
     #kjeldchat-header .kc-avatar {
         width: 34px !important; height: 34px !important; flex: 0 0 34px !important;
@@ -174,12 +174,12 @@ html, body {
 }
 
 /* ---- header ------------------------------------------------------------- */
-/* Asymmetric padding on purpose: Gradio's column leaves ~11px above this strip, so
-   centring the brand within the strip itself sits it ~5px below the midpoint between
-   the card's top edge and the divider, which is the gap the eye actually reads. */
+/* Padding chosen so the brand's centre lands on the midpoint between the card's top
+   edge and the divider: 19 + half of the 44px mark = 41, and 19+44+18+1 = 82 puts the
+   divider at 82, whose midpoint with 0 is also 41. */
 #kjeldchat-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 13px 22px 23px; border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: 19px 22px 18px; border-bottom: 1px solid rgba(255,255,255,.06);
 }
 #kjeldchat-header .kc-brand { display: flex; align-items: center; gap: 12px; }
 #kjeldchat-header .kc-avatar {
@@ -230,6 +230,13 @@ html, body {
 #kjeldchat-wrap > .column {
     flex: 1 1 auto !important; min-height: 0 !important;
 }
+/* Gradio's column spaces its children by 16px, which shows as a gap under the header
+   divider and another above the composer. The composer's own padding is the breathing
+   room; this gap just detaches the transcript from the card's edges. */
+#kjeldchat-wrap .column { gap: 0 !important; }
+/* gr.HTML wraps its content in a .html-container with 10px padding, which puts a band
+   above the header and another between the divider and the transcript. */
+#kjeldchat-wrap .html-container { padding: 0 !important; }
 #kjeldchat-box {
     flex: 1 1 auto !important; height: auto !important; min-height: 0 !important;
     border: none !important; background: transparent !important;
