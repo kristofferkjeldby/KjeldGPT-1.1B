@@ -1,0 +1,17 @@
+{
+  "run_name": "davinci-002",
+  "timestamp_utc": "2026-07-27T19:33:30Z",
+  "checkpoint": "external:openai_completion:davinci-002 (closed-book, no RAG)",
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 191,
+    "incorrect": 155,
+    "premise_accepted_hallucination": 42,
+    "premise_corrected": 8,
+    "non_factual": 30
+  }
+}

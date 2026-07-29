@@ -1,0 +1,54 @@
+# Corpus data -- raw/cleaned text, tokenizer, tokenized train/val bins. Large and
+# reproducible from base/data/*.py; only the small tokenizer.json is worth keeping
+# tracked if you want it (currently ignored for simplicity -- unignore it explicitly
+# if desired).
+/base/data/gutenberg/raw_gutenberg/
+/base/data/gutenberg/clean_gutenberg/
+/base/data/wikipedia/raw_wikipedia/
+/base/data/wikipedia/clean_wikipedia/
+/base/data/tokenizer/
+/base/data/*.bin
+/base/data/meta.json
+
+/finetune/data/raw_sample/
+/finetune/data/finetune_corpus*.txt
+/finetune/data/*.bin
+/finetune/data/meta.json
+/finetune/data/*.log
+
+# RAG data -- passage embeddings/index, kept separate from the base model's own
+# training data in /base/data/. The fetched articles are ignored too (the raw
+# extracts alone are 1.1GB, well past GitHub's 100MB per-file limit), but
+# vital_level5_titles.txt stays tracked: it is the input list that makes
+# fetch_vital_articles.py reproducible, so the whole index can be rebuilt from
+# source without shipping a gigabyte of Wikipedia.
+/rag/data/passage_embeddings/
+/rag/data/primary_articles/*.jsonl
+/rag/data/primary_articles/vital_passages.txt
+/rag/data/primary_articles/*.log
+
+# Third-party sentence-transformer snapshots -- not this project's work, and
+# re-downloadable; see rag/rag_retrieve.py's EMBED_MODEL_PATH comment for the
+# one-liner that recreates each one.
+/rag/models/
+
+# Checkpoints -- multi-GB model weights, not source
+/base/checkpoints/
+/finetune/checkpoints/
+
+# Hugging Face Hub export -- pushed there directly, not to GitHub
+/base/hf_export/
+
+# Logs/plots are run artifacts, not source -- regenerate via plot_insights.py
+/base/insights/logs/
+/base/insights/plots/
+/finetune/insights/logs/
+/finetune/insights/plots/
+
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# Personal blog drafts -- not part of the project itself
+/blogs/

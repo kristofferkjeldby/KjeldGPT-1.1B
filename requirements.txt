@@ -1,0 +1,38 @@
+# Core training stack (base_train.py, finetune_train.py, model.py)
+torch
+tokenizers
+numpy
+tqdm
+
+# Claude API calls -- Q/A corpus generation (finetune/data/generate_*.py) and the
+# automated test-judging pipeline (test/qa_loop.py, test/diagnose_rag_precision.py,
+# test/generate_questions.py); also the tested backend in test/qa_loop_external.py
+# when --backend anthropic
+anthropic
+
+# test/qa_loop_external.py's --backend openai -- runs the same test suite against a
+# hosted OpenAI model for the blackbox comparison in test/plot_model_comparison.py
+openai
+
+# test/qa_loop_external.py's --backend huggingface -- locally-run comparison models
+# (GPT-2 XL, TinyLlama). Also pulled in by sentence-transformers below.
+transformers
+
+# base/convert_to_safetensors.py -- exports the checkpoint in Hugging Face's format
+safetensors
+
+# plot_insights.py (base/insights/, finetune/insights/), test/plot_qa_loop.py and
+# test/plot_model_comparison.py
+matplotlib
+scipy
+
+# chat.py (optional -- offline text-to-speech; --no-speak works without it)
+pyttsx3
+
+# rag/embed_passages.py and rag/rag_retrieve.py (RAG: passage embedding and query-time
+# retrieval, both use all-MiniLM-L6-v2); also rag/rag_rerank.py (cross-encoder reranking
+# of retrieval candidates, ms-marco-MiniLM-L-6-v2)
+sentence-transformers
+
+# chat_gui.py (browser-based chat UI)
+gradio

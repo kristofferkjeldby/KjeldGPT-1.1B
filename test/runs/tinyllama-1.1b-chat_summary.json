@@ -1,0 +1,17 @@
+{
+  "run_name": "tinyllama-1.1b-chat",
+  "timestamp_utc": "2026-07-27T21:53:03Z",
+  "checkpoint": "external:huggingface:tinyllama-1.1b-chat (closed-book, no RAG)",
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "incorrect": 273,
+    "success": 73,
+    "premise_accepted_hallucination": 44,
+    "premise_corrected": 6,
+    "non_factual": 30
+  }
+}

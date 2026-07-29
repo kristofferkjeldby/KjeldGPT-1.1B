@@ -1,0 +1,17 @@
+{
+  "run_name": "gpt-3.5-turbo-instruct",
+  "timestamp_utc": "2026-07-27T19:30:02Z",
+  "checkpoint": "external:openai_completion:gpt-3.5-turbo-instruct (closed-book, no RAG)",
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 298,
+    "incorrect": 48,
+    "premise_corrected": 40,
+    "premise_accepted_hallucination": 10,
+    "non_factual": 30
+  }
+}

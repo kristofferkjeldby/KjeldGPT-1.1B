@@ -1,0 +1,17 @@
+{
+  "run_name": "gpt2-xl",
+  "timestamp_utc": "2026-07-27T22:37:07Z",
+  "checkpoint": "external:huggingface:gpt2-xl (closed-book, no RAG)",
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 53,
+    "incorrect": 293,
+    "premise_accepted_hallucination": 49,
+    "premise_corrected": 1,
+    "non_factual": 30
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "run_name": "v1",
+  "timestamp_utc": "2026-07-24T16:57:03Z",
+  "checkpoint": "/Users/kjeldby/Python/corpus/tests/../finetune/checkpoints/kjeldchat_best.pt",
+  "index_dir": "../rag/data/passage_embeddings",
+  "min_context_score": 0.55,
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "finetuning_grounding_failure": 136,
+    "rag_precision_failure": 100,
+    "success": 83,
+    "rag_recall_failure": 27,
+    "premise_accepted_hallucination": 48,
+    "premise_corrected": 2,
+    "non_factual": 30
+  }
+}

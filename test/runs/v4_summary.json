@@ -1,0 +1,22 @@
+{
+  "run_name": "v4",
+  "timestamp_utc": "2026-07-26T14:20:14Z",
+  "checkpoint": "../finetune/checkpoints/kjeldchat_final.pt",
+  "index_dir": "default",
+  "rerank": true,
+  "min_context_score": 2.0,
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 105,
+    "rag_precision_failure": 70,
+    "finetuning_grounding_failure": 122,
+    "rag_recall_failure": 49,
+    "premise_accepted_hallucination": 40,
+    "premise_corrected": 10,
+    "non_factual": 30
+  }
+}
