@@ -273,13 +273,19 @@ form, .form, .styler, .gr-group,
 /* .toast-wrap is the always-present positioning container, not the toast itself -- give
    it a background or border and it draws a permanent hairline across the top. */
 .toast-wrap { background: transparent !important; border: none !important; }
-.toast-body, .toast-text, .error, .error-content,
+/* Scoped to the .error variant only. Gradio uses .toast-body with .error/.warning/.info/
+   .success modifiers, so styling bare .toast-body repaints every notification as an
+   error -- including ZeroGPU's own "waiting for GPU" info toast, which is routine
+   queueing rather than a failure. Those keep Gradio's own colours. */
+.toast-body.error, .error-content,
 #kjeldchat-box .error, #kjeldchat-wrap .error {
     background: #1a1020 !important; color: #fecdd3 !important;
     border: 1px solid rgba(244, 63, 94, .4) !important;
     border-radius: 14px !important; box-shadow: none !important;
 }
-.toast-title, .toast-details, .toast-icon, .toast-close { color: #fda4af !important; }
+.toast-body.error .toast-title, .toast-body.error .toast-details,
+.toast-body.error .toast-text, .toast-body.error .toast-icon,
+.toast-body.error .toast-close { color: #fda4af !important; }
 /* The in-panel error block is sized to the chat area and pushes the layout around. */
 #kjeldchat-box .error {
     height: auto !important; max-height: 160px !important; margin: 12px !important;
