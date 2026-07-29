@@ -252,6 +252,9 @@ form, .form, .styler, .gr-group,
     font-size: 11.5px !important; padding: 3px 11px !important;
     box-shadow: none !important; white-space: nowrap !important;
     pointer-events: none !important;
+    /* 20px matches the message rows' margin, so the pill's right edge lines up with the
+       right edge of the user's question bubbles rather than sitting flush to the panel. */
+    margin-right: 20px !important;
 }
 
 /* Errors surface as a Gradio toast plus an in-panel block, neither of which follows the
