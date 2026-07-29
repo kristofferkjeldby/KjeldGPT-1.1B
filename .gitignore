@@ -40,6 +40,9 @@
 /base/hf_export/
 /finetune/hf_export/
 
+# Space staging dir -- assembled from tracked sources by spaces/build_space.py
+/spaces/build/
+
 # Logs/plots are run artifacts, not source -- regenerate via plot_insights.py
 /base/insights/logs/
 /base/insights/plots/

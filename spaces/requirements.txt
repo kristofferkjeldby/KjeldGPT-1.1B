@@ -1,0 +1,28 @@
+# Space-only dependency set -- deliberately not the project's requirements.txt, which
+# also carries the training, corpus-generation, evaluation and plotting stacks
+# (anthropic, openai, matplotlib, scipy). None of that runs at inference time, and every
+# extra wheel is added cold-start latency on a Space that sleeps.
+
+# ZeroGPU's supported range is 2.8.0 to latest -- an unpinned torch would eventually
+# install a version the platform rejects.
+torch>=2.8,<2.12
+
+# ZeroGPU is Gradio-SDK-only; 4+ required, and chat_gui.py passes theme/css/js to
+# launch(), which is the Gradio 6 signature.
+gradio>=6.0
+
+# @spaces.GPU -- effect-free off-platform, so app.py still runs locally.
+spaces
+
+tokenizers
+safetensors
+numpy
+
+# rag_retrieve.py's bi-encoder and rag_rerank.py's cross-encoder.
+sentence-transformers
+
+# app.py's hf_hub_download / snapshot_download of weights, index and encoders.
+huggingface_hub
+
+# NOT included: pyttsx3. chat.py guards its import (try/except -> None), and a Space has
+# no audio device to speak into.

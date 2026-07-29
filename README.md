@@ -102,6 +102,21 @@ of that is actually working. Four features, one shared architecture (`model.py`)
 │                               primary_articles/vital_level5_titles.txt, the ~45k-title
 │                               input list that makes the fetch reproducible
 │
+├── spaces/                    the Hugging Face Space -- chat_gui.py's pipeline served
+│   │                          publicly, generated from these sources rather than
+│   │                          hand-maintained in a second repo
+│   ├── app.py                  Space entrypoint: downloads weights/index/encoders from
+│   │                           the Hub into the paths rag/ already looks in, then
+│   │                           reuses chat_gui.build_respond_fn unchanged, wrapped in
+│   │                           @spaces.GPU for ZeroGPU
+│   ├── requirements.txt        inference-only deps (no anthropic/openai/matplotlib --
+│   │                           none of it runs at inference, and every wheel is
+│   │                           cold-start latency on a Space that sleeps)
+│   ├── README.md               the Space card (YAML frontmatter + what to expect)
+│   ├── build_space.py          assembles build/ from the files above + model.py,
+│   │                           chat.py, chat_gui.py, rag/'s two retrieval modules
+│   └── build/                  (gitignored -- regenerate with build_space.py)
+│
 └── test/                       QA-loop evaluation harness -- classifies real chat.py
     │                           answers (via chat.py's own retrieval + generation code
     │                           paths) rather than guessing at quality by hand
