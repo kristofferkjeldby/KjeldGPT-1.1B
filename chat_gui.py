@@ -220,6 +220,15 @@ form, .form, .styler, .gr-group,
 /* The wrap is the positioning context the top-panel buttons are pinned to. */
 #kjeldchat-wrap { position: relative !important; }
 #kjeldchat-input { padding: 14px 18px 18px !important; }
+/* Gradio drops a loading overlay with an 80px spinner over the textbox for ~100ms each
+   time a message is submitted -- a visible flash in the composer. The chat area already
+   shows a typing indicator, so the spinner says nothing new. Safe to hide wholesale:
+   this wrap lives inside #kjeldchat-input, whereas the generation status pill sits in a
+   separate wrap inside #kjeldchat-box. */
+#kjeldchat-input .wrap { display: none !important; }
+/* The textarea also reflows 56 -> 54 -> 56px across submit; pinning the height stops
+   the composer twitching. */
+#kjeldchat-input textarea { min-height: 56px !important; }
 #kjeldchat-input textarea {
     background: #141824 !important; color: #e8ebf5 !important;
     border: 1px solid rgba(255,255,255,.07) !important;
