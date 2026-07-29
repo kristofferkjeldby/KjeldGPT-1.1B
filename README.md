@@ -44,8 +44,12 @@ of that is actually working. Four features, one shared architecture (`model.py`)
 │   │   └── tokenize_dataset.py
 │   ├── base_train.py          pretraining loop
 │   ├── BASE_PARAMS.md         corpus/model/hyperparameter reference for the pretrain run
-│   ├── convert_to_safetensors.py  exports the checkpoint as safetensors + config.json
-│   │                          + tokenizer.json, for publishing on Hugging Face
+│   ├── convert_to_safetensors.py  exports a checkpoint as safetensors + config.json
+│   │                          + tokenizer.json, for publishing on Hugging Face --
+│   │                          serves both models (--checkpoint/--out_dir), since
+│   │                          both training scripts save the same dict shape
+│   ├── MODEL_CARD.md          the Hugging Face card for KjeldGPT 1.1B -- tracked
+│   │                          here, copied into hf_export/ at upload time
 │   ├── checkpoints/           (gitignored -- base model weights)
 │   └── insights/              (gitignored except plot_insights.py -- training logs/plots)
 │       └── plot_insights.py   regenerates plots/ from logs/train_run.log (run from anywhere)
@@ -65,6 +69,7 @@ of that is actually working. Four features, one shared architecture (`model.py`)
 │   ├── finetune_train.py      finetuning loop (resumes a base checkpoint, never chains
 │   │                          finetunes on top of finetunes)
 │   ├── FINETUNE_PARAMS.md
+│   ├── MODEL_CARD.md           the Hugging Face card for KjeldChat 1.1B
 │   ├── checkpoints/            (gitignored -- finetuned model weights)
 │   └── insights/               (gitignored except plot_insights.py -- finetuning logs/plots)
 │       └── plot_insights.py
@@ -208,9 +213,27 @@ retrain the models. What is tracked is the source, the parameters
 (`BASE_PARAMS.md`/`FINETUNE_PARAMS.md`), and the full evaluation track record
 (`test/runs/`, `test/plots/`) -- about 7MB in total.
 
-Model weights are published separately on Hugging Face rather than committed here;
+Model weights are published separately on Hugging Face rather than committed here:
+
+- [`kristofferkjeldby/KjeldGPT-1.1B`](https://huggingface.co/kristofferkjeldby/KjeldGPT-1.1B) -- the base model
+- [`kristofferkjeldby/KjeldChat-1.1B`](https://huggingface.co/kristofferkjeldby/KjeldChat-1.1B) -- the finetuned model (v6)
+
 `base/convert_to_safetensors.py` produces the `safetensors` + `config.json` +
-`tokenizer.json` export for that.
+`tokenizer.json` export for both:
+
+```
+cd base
+python3 convert_to_safetensors.py                        # -> base/hf_export
+python3 convert_to_safetensors.py \
+    --checkpoint ../finetune/checkpoints/kjeldchat_v6.pt \
+    --out_dir ../finetune/hf_export                      # -> finetune/hf_export
+```
+
+Neither `hf_export/` is tracked (they're rebuildable from a checkpoint), but the two
+`MODEL_CARD.md` files are -- copy one in as `README.md` before uploading, so the card
+lives under version control alongside the code it documents rather than only on the
+Hub. Note that these are custom-architecture weights, not `transformers` models: they
+load via this repo's own `model.py`, and both cards lead with that.
 
 ## License
 

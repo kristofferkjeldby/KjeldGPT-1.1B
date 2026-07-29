@@ -38,6 +38,7 @@
 
 # Hugging Face Hub export -- pushed there directly, not to GitHub
 /base/hf_export/
+/finetune/hf_export/
 
 # Logs/plots are run artifacts, not source -- regenerate via plot_insights.py
 /base/insights/logs/

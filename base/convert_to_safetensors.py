@@ -1,9 +1,14 @@
 """
-Converts a base_train.py checkpoint (raw torch.save pickle: {"model", "config", "iter",
-"val_loss", "best_val_loss", "best_iter"}) into a Hugging Face Hub-ready folder:
-model.safetensors, config.json, and a copy of tokenizer.json -- for KjeldGPT-1.1B's own
-model.py architecture, not a transformers AutoModel class, so this doesn't wire up
-AutoModel loading -- it just gets the artifacts into the Hub's expected shapes/names.
+Converts a base_train.py or finetune_train.py checkpoint (raw torch.save pickle:
+{"model", "config", "iter", "val_loss", "best_val_loss", "best_iter"}, plus
+"resumed_from" for finetunes) into a Hugging Face Hub-ready folder: model.safetensors,
+config.json, and a copy of tokenizer.json -- for KjeldGPT-1.1B's own model.py
+architecture, not a transformers AutoModel class, so this doesn't wire up AutoModel
+loading -- it just gets the artifacts into the Hub's expected shapes/names.
+
+Both training scripts save the same dict shape and both models share model.py's
+architecture, so one exporter serves both -- the defaults below target the base
+checkpoint, and --checkpoint/--out_dir point it at a finetune instead.
 
 Drops the duplicate "head.weight" tensor before saving: when config.tied is True,
 model.py's GPT.__init__ (see model.py's comment near "self.head.weight = self.tok_emb.weight")
@@ -16,9 +21,16 @@ snippet this script prints at the end) to tolerate the one intentionally-missing
 
 Run from within base/:
     cd base
-    python3 convert_to_safetensors.py
+    python3 convert_to_safetensors.py                        # base -> base/hf_export
+    python3 convert_to_safetensors.py \
+        --checkpoint ../finetune/checkpoints/kjeldchat_v6.pt \
+        --out_dir ../finetune/hf_export                      # finetune -> finetune/hf_export
+
+The tokenizer is the same file in both cases: finetuning never retrains it, so a
+finetune export copies base/data/tokenizer/tokenizer.json too.
 """
 
+import argparse
 import dataclasses
 import json
 import os
@@ -27,17 +39,27 @@ import sys
 import torch
 from safetensors.torch import save_file
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(BASE_DIR, ".."))
 
-CHECKPOINT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "checkpoints", "kjeldgpt.pt")
-TOKENIZER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "tokenizer", "tokenizer.json")
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hf_export")
+CHECKPOINT = os.path.join(BASE_DIR, "checkpoints", "kjeldgpt.pt")
+TOKENIZER_PATH = os.path.join(BASE_DIR, "data", "tokenizer", "tokenizer.json")
+OUT_DIR = os.path.join(BASE_DIR, "hf_export")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--checkpoint", default=CHECKPOINT, help="checkpoint .pt to export (default: the base model)")
+    parser.add_argument("--out_dir", default=OUT_DIR, help="folder to write the Hub artifacts into")
+    parser.add_argument("--tokenizer", default=TOKENIZER_PATH, help="tokenizer.json to copy alongside the weights")
+    return parser.parse_args()
 
 
 def main():
-    os.makedirs(OUT_DIR, exist_ok=True)
+    args = parse_args()
+    os.makedirs(args.out_dir, exist_ok=True)
 
-    ckpt = torch.load(CHECKPOINT, map_location="cpu", weights_only=False)
+    ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     state_dict = ckpt["model"]
     config = ckpt["config"]
 
@@ -55,23 +77,29 @@ def main():
     # no-op safeguard against a future non-contiguous edge case.
     state_dict = {k: v.contiguous() for k, v in state_dict.items()}
 
-    save_file(state_dict, os.path.join(OUT_DIR, "model.safetensors"), metadata={
+    metadata = {
         "iter": str(ckpt["iter"]),
         "val_loss": str(ckpt["val_loss"]),
         "best_val_loss": str(ckpt["best_val_loss"]),
         "best_iter": str(ckpt["best_iter"]),
-    })
+    }
+    # Finetune checkpoints record which base checkpoint they resumed from; keeping it in
+    # the safetensors metadata is what makes a published finetune traceable to its base.
+    if ckpt.get("resumed_from"):
+        metadata["resumed_from"] = str(ckpt["resumed_from"])
+
+    save_file(state_dict, os.path.join(args.out_dir, "model.safetensors"), metadata=metadata)
 
     config_dict = dataclasses.asdict(config)
     config_dict["model_type"] = "kjeldgpt"
-    with open(os.path.join(OUT_DIR, "config.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(args.out_dir, "config.json"), "w", encoding="utf-8") as f:
         json.dump(config_dict, f, indent=2)
 
-    with open(TOKENIZER_PATH, "rb") as src, \
-            open(os.path.join(OUT_DIR, "tokenizer.json"), "wb") as dst:
+    with open(args.tokenizer, "rb") as src, \
+            open(os.path.join(args.out_dir, "tokenizer.json"), "wb") as dst:
         dst.write(src.read())
 
-    print(f"wrote {OUT_DIR}/model.safetensors, config.json, tokenizer.json")
+    print(f"wrote {args.out_dir}/model.safetensors, config.json, tokenizer.json")
     print(
         "\nTo load:\n"
         "    from safetensors.torch import load_file\n"
