@@ -96,6 +96,14 @@ html, body {
 #kjeldchat-wrap {
     max-width: 1000px !important; margin: 24px auto !important; padding: 0 !important;
     gap: 0 !important;
+    /* Fill the viewport minus the 24px margin top and bottom, so the card grows and
+       shrinks with the browser window instead of standing at a fixed height. */
+    height: calc(100vh - 48px) !important;
+    max-height: calc(100vh - 48px) !important;
+    /* Floor: below this the transcript is too short to read a reply in, so the card
+       stops shrinking. Set well under any realistic desktop window so it only bites on
+       a deliberately tiny one. */
+    min-height: 420px !important;
     background: var(--kc-panel) !important;
     border: 1px solid var(--kc-line) !important;
     border-radius: 24px !important;
@@ -152,7 +160,18 @@ html, body {
 }
 
 /* ---- message bubbles ---------------------------------------------------- */
-#kjeldchat-box { height: 62vh !important; border: none !important; background: transparent !important; }
+/* The transcript takes whatever height is left once the header and composer have taken
+   theirs, rather than a fixed 62vh that ignored the window. min-height:0 on both this
+   and the column above is what actually lets a flex child shrink -- without it the
+   default min-height:auto keeps the box at its content height and the composer gets
+   pushed off the bottom of the card. */
+#kjeldchat-wrap > .column {
+    flex: 1 1 auto !important; min-height: 0 !important;
+}
+#kjeldchat-box {
+    flex: 1 1 auto !important; height: auto !important; min-height: 0 !important;
+    border: none !important; background: transparent !important;
+}
 /* Vertical padding only. Horizontal padding here indents the bubble but not the row's
    other children -- the Retry button and the pending indicator sit at the row's own
    left edge -- so any left/right value shows up as a misalignment, and as a sideways
@@ -256,10 +275,17 @@ form, .form, .styler, .gr-group,
     border-color: rgba(167,139,250,.55) !important;
     box-shadow: 0 0 0 3px rgba(124,58,237,.16) !important;
 }
-#kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button {
+/* Send button, to the right of the field. Centred against the textarea rather than
+   sitting on its baseline, which leaves it looking dropped. */
+#kjeldchat-input .input-container { align-items: center !important; }
+#kjeldchat-input button[class*="submit"], #kjeldchat-input .submit-button,
+#kjeldchat-input button {
     background: linear-gradient(135deg, var(--kc-accent), var(--kc-accent-2)) !important;
-    border: none !important; border-radius: 11px !important; color: #fff !important;
+    border: none !important; border-radius: 12px !important; color: #fff !important;
+    width: 40px !important; height: 40px !important; flex: 0 0 40px !important;
+    align-self: center !important; margin-left: 10px !important;
 }
+#kjeldchat-input button:hover { filter: brightness(1.12) !important; }
 
 /* ---- generation status ("processing | 3.7s", tokens/s) ------------------- */
 /* Only the wrapper's chrome is overridden. Do NOT set width/height/inset here: Gradio
@@ -464,7 +490,11 @@ def main():
                     placeholder=PLACEHOLDER_HTML,
                 ),
                 textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Type your message...",
-                                    lines=1, max_lines=6, show_label=False),
+                                    lines=1, max_lines=6, show_label=False,
+                                    # Must be set here, not on ChatInterface: gr.Textbox
+                                    # defaults submit_btn to False and a supplied textbox
+                                    # wins, which is why the button never appeared.
+                                    submit_btn=True),
                 submit_btn=True,
                 fill_width=True,
             )

@@ -144,7 +144,7 @@ with gr.Blocks(title="KjeldChat") as demo:
                 placeholder=PLACEHOLDER_HTML,
             ),
             textbox=gr.Textbox(elem_id="kjeldchat-input", placeholder="Type your message...",
-                                lines=1, max_lines=6, show_label=False),
+                                lines=1, max_lines=6, show_label=False, submit_btn=True),
             submit_btn=True,
             fill_width=True,
         )
