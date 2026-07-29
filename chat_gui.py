@@ -237,18 +237,17 @@ form, .form, .styler, .gr-group,
 }
 
 /* ---- generation status ("processing | 3.7s", tokens/s) ------------------- */
-/* Pinned to the panel's bottom-right and taken out of flow entirely: left in normal
-   flow its wrapper reserves space, so the row above nudges as the text appears,
-   changes width and disappears again. */
+/* Only the wrapper's chrome is overridden. Do NOT set width/height/inset here: Gradio
+   already positions this absolutely (so it never affected layout), and forcing the box
+   to auto collapses it to 0x0 -- with its overflow:hidden that clips the pill away, so
+   the status flickers into existence and is never visible. */
 #kjeldchat-wrap .wrap.default.minimal, #kjeldchat-wrap .wrap.translucent {
-    position: absolute !important; inset: auto 14px 12px auto !important;
-    width: auto !important; height: auto !important; min-height: 0 !important;
-    background: transparent !important; padding: 0 !important; border: none !important;
+    background: transparent !important; border: none !important;
 }
 #kjeldchat-wrap .progress-text, #kjeldchat-wrap .meta-text {
-    background: rgba(23, 27, 43, .92) !important;
-    color: #b9a7f5 !important;
-    border: 1px solid rgba(167, 139, 250, .32) !important;
+    background: rgba(23, 27, 43, .96) !important;
+    color: #cdbcff !important;
+    border: 1px solid rgba(167, 139, 250, .5) !important;
     border-radius: 999px !important;
     font-size: 11.5px !important; padding: 3px 11px !important;
     box-shadow: none !important; white-space: nowrap !important;
