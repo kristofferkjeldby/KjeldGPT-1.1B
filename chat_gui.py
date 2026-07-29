@@ -60,7 +60,7 @@ HEADER_HTML = """
 # Shown in the empty chat area before the first question. Doubles as the place to set
 # expectations -- one Q/A format, no conversational memory (see chat.py's templates).
 PLACEHOLDER_HTML = """
-<div style="text-align:center; color:#ffffff; line-height:1.7;">
+<div id="kc-intro" style="text-align:center; line-height:1.7;">
   <div style="font-size:17px; margin-bottom:6px;">Ask a question</div>
   <div style="font-size:13.5px;">
     Answers are grounded in retrieved Wikipedia passages.<br>
@@ -128,6 +128,12 @@ html, body {
 #kjeldchat-wrap button[aria-label="Undo"],
 #kjeldchat-wrap button[aria-label="Copy message"],
 #kjeldchat-wrap button[aria-label="Clear"] { display: none !important; }
+
+/* ---- empty-state intro --------------------------------------------------- */
+/* Gradio renders the placeholder inside a span.md whose rules colour descendants
+   directly, which beats an inherited colour on the block -- so an inline style on the
+   wrapper leaves the text at Gradio's slate. Set on every node instead. */
+#kc-intro, #kc-intro * { color: #ffffff !important; }
 
 /* ---- message bubbles ---------------------------------------------------- */
 #kjeldchat-box { height: 62vh !important; border: none !important; background: transparent !important; }
