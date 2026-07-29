@@ -67,7 +67,10 @@ HEADER_HTML = """
 PLACEHOLDER_HTML = """
 <div>
   <div>Ask a question</div>
-  <div>Each question is answered independently</div>
+  <div>
+    Each question is answered independently.<br>
+    Answers are machine-generated and unreviewed &mdash; they can be wrong.
+  </div>
 </div>
 """
 
