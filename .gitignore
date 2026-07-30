@@ -11,7 +11,16 @@
 /base/data/meta.json
 
 /finetune/data/raw_sample/
-/finetune/data/finetune_corpus*.txt
+# The six generated corpora ARE tracked (~50MB total): each one is thousands of Claude
+# API calls that can't be reproduced for free, and never byte-identically. These two are
+# not -- they're derived, and regenerating them is two commands:
+#   cat finetune_corpus_context.txt finetune_corpus_no_context.txt \
+#       finetune_corpus_context_grounding.txt finetune_corpus_context_false_premise.txt \
+#       finetune_corpus_no_context_false_premise.txt \
+#       finetune_corpus_context_discrimination.txt > finetune_corpus.txt
+#   python3 shuffle_finetune.py --group_by_context   # deterministic, seed 0
+/finetune/data/finetune_corpus.txt
+/finetune/data/finetune_corpus_shuffled.txt
 /finetune/data/*.bin
 /finetune/data/meta.json
 /finetune/data/*.log
