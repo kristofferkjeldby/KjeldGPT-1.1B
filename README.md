@@ -64,10 +64,16 @@ of that is actually working. Four features, one shared architecture (`model.py`)
 │   │   ├── generate_grounding_qa.py                targets demonstrated grounding
 │   │   │                                           failures (qa_loop.py's own results)
 │   │   │                                           with stricter, no-embellishment pairs
-│   │   ├── shuffle_finetune.py
-│   │   └── tokenize_finetune.py       also writes a prompt/answer loss mask
+│   │   ├── generate_discrimination_qa.py           targets value-selection failures --
+│   │   │                                           several questions per passage, each
+│   │   │                                           resolving to a different same-type
+│   │   │                                           value (usually a year)
+│   │   ├── shuffle_finetune.py        --group_by_context splits by whole passage, not pair
+│   │   └── tokenize_finetune.py       also writes a prompt/answer loss mask;
+│   │                                  --group_val_by_context matches the split above
 │   ├── finetune_train.py      finetuning loop (resumes a base checkpoint, never chains
-│   │                          finetunes on top of finetunes)
+│   │                          finetunes on top of finetunes; --snapshot_every saves a
+│   │                          checkpoint every N steps for a post-hoc sweep)
 │   ├── FINETUNE_PARAMS.md
 │   ├── MODEL_CARD.md           the Hugging Face card for KjeldChat 1.1B
 │   ├── checkpoints/            (gitignored -- finetuned model weights)
