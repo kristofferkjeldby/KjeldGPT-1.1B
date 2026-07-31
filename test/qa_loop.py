@@ -93,7 +93,12 @@ def call_judge(client, model, prompt, max_retries=3):
                 messages=[{"role": "user", "content": prompt}],
             )
             break
-        except anthropic.RateLimitError:
+        # Connection/server errors get the same backoff as rate limits: the judge phase
+        # runs hundreds of calls after an hour of generation, and a single transient
+        # blip used to abort the whole run (see --resume_from_raw for the other half of
+        # that fix -- retries reduce the odds, they don't eliminate them).
+        except (anthropic.RateLimitError, anthropic.APIConnectionError,
+                anthropic.InternalServerError):
             if attempt == max_retries:
                 raise
             time.sleep(2 ** attempt * 5)
@@ -198,6 +203,12 @@ def main():
     parser.add_argument("--repetition_penalty", type=float, default=1.3)
     parser.add_argument("--judge_model", type=str, default="claude-sonnet-5")
     parser.add_argument("--judge_concurrency", type=int, default=5)
+    parser.add_argument("--resume_from_raw", action="store_true",
+                         help="skip generation entirely and judge the answers already in "
+                              "runs/<run_name>_raw.jsonl, written by a previous run of this "
+                              "script right after its generation phase. For when the judge "
+                              "phase failed (rate limit, connection error) and regenerating "
+                              "hundreds of answers just to re-judge them would be wasteful")
     parser.add_argument("--run_name", type=str, default=None,
                          help="identifies this run's output files in runs/ -- defaults to "
                               "a UTC timestamp so successive runs build a track record "
@@ -209,6 +220,15 @@ def main():
     os.makedirs(runs_dir, exist_ok=True)
     out_path = os.path.join(runs_dir, f"{run_name}.jsonl")
     summary_path = os.path.join(runs_dir, f"{run_name}_summary.json")
+    raw_path = os.path.join(runs_dir, f"{run_name}_raw.jsonl")
+
+    if args.resume_from_raw:
+        with open(raw_path, encoding="utf-8") as f:
+            records = [json.loads(line) for line in f]
+        print(f"resuming from {raw_path}: {len(records)} already-generated answers, "
+              f"skipping generation", flush=True)
+        judge_and_write(records, args, run_name, out_path, summary_path)
+        return
 
     device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -267,7 +287,23 @@ def main():
         })
         print(f"[gen {i+1}/{len(qs)}] {q}", flush=True)
 
-    # Phase 2: judge everything except non_factual, concurrently
+    # Phase 1.5: persist the raw generations before any judging happens. Generation is
+    # the expensive, unrepeatable half (an hour-plus of model time); judging is a few
+    # minutes of API calls that can fail on a transient connection error and used to
+    # take the whole run down with it, output files never written. With this, a failed
+    # judge phase costs only itself -- rerun with --resume_from_raw.
+    with open(raw_path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r) + "\n")
+    print(f"\nwrote {len(records)} raw (unjudged) answers to {raw_path}", flush=True)
+
+    judge_and_write(records, args, run_name, out_path, summary_path)
+
+
+def judge_and_write(records, args, run_name, out_path, summary_path):
+    """Phase 2: judge everything except non_factual, concurrently, then write the run's
+    .jsonl and summary. Split out from main() so --resume_from_raw can re-enter here
+    with answers loaded from disk instead of regenerated."""
     num_to_judge = sum(1 for r in records if r["category"] != "non_factual")
     print(f"\njudging {num_to_judge} factual + false-premise answers ...", flush=True)
     client = anthropic.Anthropic()
