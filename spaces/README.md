@@ -41,12 +41,12 @@ This is a hobby project, and a 1.1B model is small. Calibrate accordingly:
   a correct retrieved passage, or stating something plainly false when retrieval doesn't
   cover the question. Nothing it produces is reviewed before you see it. Reducing the
   error rate is exactly what the project's evaluation harness measures.
-- **It pushes back on false premises.** Asking about something that didn't happen is
-  worth a try — correcting the premise instead of playing along was specifically
-  trained, with ~4,000 targeted pairs, and it's the model's strongest result relative
-  to its size.
+- **False premises are its least reliable trained behavior.** Correcting a wrong
+  assumption instead of playing along was specifically trained, with ~4,000 targeted
+  pairs, but it still catches one only about 1 in 10 times — see the model card for
+  exact numbers.
 
-Graded blackbox against six other models on 426 questions, it answers 138 correctly —
+Graded blackbox against six other models on 426 questions, it answers 150 correctly —
 ahead of GPT-2 XL (53, and larger) and TinyLlama-1.1B-Chat (73, instruction-tuned at
 the same size), behind davinci-002 (191). Full numbers on the
 [model card](https://huggingface.co/kristofferkjeldby/KjeldChat-1.1B).

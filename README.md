@@ -169,20 +169,21 @@ systems, and no external model is handed a retrieved passage. Handing them one w
 only measure "can a bigger model read context", which is the one part of the pipeline
 that isn't the point.
 
-KjeldChat answers 138/426 correctly. It clears GPT-2 XL (53, at 1.5B params), TinyLlama
+KjeldChat answers 150/426 correctly. It clears GPT-2 XL (53, at 1.5B params), TinyLlama
 1.1B-Chat (73) and babbage-002 (94), and lands below davinci-002 (191) and the GPT-3.5
 pair (298, 331). That is roughly where a 1.1B model trained for ~7.5 days on one GPU
 should land, and the ordering is the interesting part: the models it beats include one
 larger than it and one instruction-tuned at the same size.
 
-The false-premise column is the result worth pointing at. KjeldChat accepts a false
-premise 37 times -- the lowest of the five small models, below TinyLlama's 44 and
-GPT-2 XL's 49 -- and explicitly corrects one 13 times, against davinci-002's 8 and
-GPT-2 XL's 1. That behavior doesn't come from scale; it comes from ~4,000 targeted
-training pairs (`finetune/data/generate_false_premise_*.py`). The GPT-3.5 models are
-still far better at it, but the gap there is much narrower than the gap in raw recall.
+False-premise handling is the weakest of its trained behaviors: of 50 questions
+embedding a false premise, KjeldChat explicitly corrects 5 and accepts 45 (inventing a
+supporting fact rather than flagging the error) -- weaker than davinci-002's 8/42 and
+TinyLlama's 6/44 at the same task. That behavior doesn't come from scale; it comes from
+~4,000 targeted training pairs (`finetune/data/generate_false_premise_*.py`), which
+help against a fully naive baseline but don't close the gap to models with a stronger
+pretrained prior to draw on.
 
-`test/plots/qa_loop_trend.png` tracks the whitebox view across v1-v6 -- the same runs
+`test/plots/qa_loop_trend.png` tracks the whitebox view across v1-v7 -- the same runs
 split into *why* each answer failed (retrieval missed it, retrieved the wrong passage,
 or had the right passage and didn't use it), which is what actually drove each fix.
 Reproduce either chart with `test/plot_model_comparison.py` / `test/plot_qa_loop.py`.
@@ -231,7 +232,7 @@ retrain the models. What is tracked is the source, the parameters
 Model weights are published separately on Hugging Face rather than committed here:
 
 - [`kristofferkjeldby/KjeldGPT-1.1B`](https://huggingface.co/kristofferkjeldby/KjeldGPT-1.1B) -- the base model
-- [`kristofferkjeldby/KjeldChat-1.1B`](https://huggingface.co/kristofferkjeldby/KjeldChat-1.1B) -- the finetuned model (v6)
+- [`kristofferkjeldby/KjeldChat-1.1B`](https://huggingface.co/kristofferkjeldby/KjeldChat-1.1B) -- the finetuned model (v7)
 
 `base/convert_to_safetensors.py` produces the `safetensors` + `config.json` +
 `tokenizer.json` export for both:
@@ -240,7 +241,7 @@ Model weights are published separately on Hugging Face rather than committed her
 cd base
 python3 convert_to_safetensors.py                        # -> base/hf_export
 python3 convert_to_safetensors.py \
-    --checkpoint ../finetune/checkpoints/kjeldchat_v6.pt \
+    --checkpoint ../finetune/checkpoints/kjeldchat_v7.pt \
     --out_dir ../finetune/hf_export                      # -> finetune/hf_export
 ```
 

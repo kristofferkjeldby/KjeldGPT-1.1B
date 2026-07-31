@@ -20,7 +20,7 @@ a 1.1B-parameter GPT trained from scratch. It answers questions in a fixed
 `Question: ... / Answer: ...` format instead of continuing prose, and it is designed to
 answer **from a retrieved passage**, not from parametric memory.
 
-This repo holds checkpoint **v6**, the production checkpoint.
+This repo holds checkpoint **v7**, the production checkpoint.
 
 Source, RAG index builder, and evaluation harness:
 **https://github.com/kristofferkjeldby/KjeldGPT-1.1B**
@@ -94,11 +94,16 @@ weaker than the numbers below suggest.
 ## Finetuning
 
 Resumed from the base checkpoint (never chained on top of a previous finetune) over a
-synthetic Q/A corpus of ~45,500 pairs generated *from real Wikipedia passages*:
+synthetic Q/A corpus of ~51,200 pairs generated *from real Wikipedia passages*:
 grounded Q/A, deliberately non-factual no-context pairs, ~4,000 false-premise
-correction pairs, and a grounding corpus targeting demonstrated context-discarding
-failures. Batch size 8, peak LR 1e-5 (cosine to 1e-6), dropout 0.2, early-stopped at
-step **2,700** with validation loss **0.9385**.
+correction pairs, a grounding corpus targeting demonstrated context-discarding
+failures, and a value-discrimination corpus targeting picking the specific value a
+question asks for over the most salient one nearby. Batch size 8, peak LR 1e-5
+(cosine to 1e-6), dropout 0.2. Training and validation are split by source passage,
+not by individual Q/A pair, so validation measures the model on passages it never
+trained on -- what it actually faces at inference. The promoted checkpoint is step
+**2,700** of a 3,789-step run, chosen by evaluation score rather than by early
+stopping (see `finetune/FINETUNE_PARAMS.md`'s "Checkpoint selection").
 
 Both the finetuning corpus and the RAG index are Wikipedia-only, even though the base
 model's pretraining corpus is Gutenberg + Wikipedia: Gutenberg passages — novels,
@@ -117,7 +122,7 @@ retrieval is invisible in the comparison and no external model was handed a pass
 | gpt-3.5-turbo-instruct | 331 |
 | gpt-3.5-turbo | 298 |
 | davinci-002 | 191 |
-| **KjeldChat 1.1B** | **138** |
+| **KjeldChat 1.1B** | **150** |
 | babbage-002 | 94 |
 | TinyLlama-1.1B-Chat | 73 |
 | GPT-2 XL (1.5B) | 53 |
@@ -125,10 +130,12 @@ retrieval is invisible in the comparison and no external model was handed a pass
 It clears a model larger than itself (GPT-2 XL) and an instruction-tuned model of the
 same size (TinyLlama), and lands below davinci-002.
 
-The false-premise column is the more interesting result: KjeldChat accepts a false
-premise 37 times — the lowest of the five small models, against TinyLlama's 44 and
-GPT-2 XL's 49 — and explicitly corrects one 13 times, against davinci-002's 8 and
-GPT-2 XL's 1. That comes from ~4,000 targeted training pairs, not from scale.
+False-premise handling is its least reliable trained behavior: of 50 questions
+embedding a false premise, KjeldChat explicitly corrects 5 and accepts 45 (inventing a
+supporting fact rather than flagging the error) -- weaker than davinci-002's 8/42 and
+TinyLlama's 6/44 at the same task. The ~4,000 targeted training pairs
+(`finetune/data/generate_false_premise_*.py`) help against a fully naive baseline but
+don't close the gap to models with a stronger pretrained prior to draw on.
 
 ## Intended use and limitations
 
