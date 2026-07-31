@@ -51,6 +51,21 @@ parser.add_argument("--resume", type=str, default="../base/checkpoints/kjeldgpt.
 parser.add_argument("--peak_lr", type=float, default=None, help="override the peak learning rate below")
 parser.add_argument("--dropout", type=float, default=None, help="override the dropout rate below")
 parser.add_argument("--out_dir", type=str, default=None, help="override the checkpoint save directory below")
+parser.add_argument("--snapshot_every", type=int, default=0,
+                     help="in addition to --snapshot_steps, save a permanent named "
+                          "checkpoint (kjeldchat_step<N>.pt) every N steps -- for a "
+                          "post-hoc sweep over how many steps produce the best qa_loop "
+                          "score, without having to guess the right stopping point before "
+                          "training. Pair with a very large --patience so the run doesn't "
+                          "stop before reaching the range you want to compare")
+parser.add_argument("--snapshot_steps", type=str, default="",
+                     help="comma-separated steps to save under their own permanent name "
+                          "(kjeldchat_step<N>.pt), e.g. '1600,2700'. For comparing the "
+                          "model at several points of one run -- kjeldchat.pt is a rolling "
+                          "file and kjeldchat_best.pt only ever holds the best-val step, "
+                          "so neither can answer 'was it still improving after val "
+                          "plateaued?'. Pair with a very large --patience to run past the "
+                          "point early stopping would have fired")
 parser.add_argument("--epochs", type=float, default=3.0,
                      help="target passes over the finetune corpus -- max_iters is "
                           "derived from this and the actual token count in meta.json, "
@@ -287,6 +302,7 @@ def main():
     last_val_loss = None
     last_lr = get_lr(start_it, max_iters)
     stopped_early = False
+    snapshot_steps = {int(s) for s in args.snapshot_steps.split(",") if s.strip()}
 
     def checkpoint_path():
         return os.path.join(out_dir, "kjeldchat.pt")
@@ -353,6 +369,15 @@ def main():
                 save_checkpoint(it)
                 stopped_early = True
                 break
+
+        if it in snapshot_steps or (args.snapshot_every and it > 0 and it % args.snapshot_every == 0):
+            # A permanent, named copy of a specific step. kjeldchat.pt is overwritten on
+            # every checkpoint_every tick, so without this there's no way to evaluate
+            # "the model at step N" after the fact -- and copying the rolling file from
+            # outside the process would race a multi-GB torch.save.
+            snapshot_path = os.path.join(out_dir, f"kjeldchat_step{it}.pt")
+            save_checkpoint(it, snapshot_path)
+            print(f"[snapshot] saved step {it} to {os.path.basename(snapshot_path)}")
 
         if due_for_checkpoint:
             save_checkpoint(it)
