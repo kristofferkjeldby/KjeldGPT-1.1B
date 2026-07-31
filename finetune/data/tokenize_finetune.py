@@ -66,6 +66,17 @@ def main():
     parser.add_argument("--val_fraction", type=float, default=0.1,
                          help="fraction of pairs (from the end of the already-shuffled "
                               "file) held out for validation")
+    parser.add_argument("--group_val_by_context", action="store_true",
+                         help="move the train/val boundary forward until the Context "
+                              "changes, so no passage has pairs on both sides. Pass this "
+                              "with shuffle_finetune.py --group_by_context, which makes "
+                              "same-Context pairs adjacent. Without it the split is "
+                              "pair-wise, and since the corpus averages ~6 pairs per "
+                              "passage, 99.3%% of val pairs sit on a Context that also "
+                              "appears in training -- val then measures 'a new question "
+                              "about a passage you trained on' rather than an unseen "
+                              "passage, which is what the model actually faces at "
+                              "inference, and the early-stopping signal is optimistic")
     args = parser.parse_args()
 
     if not os.path.exists(args.tokenizer_path):
@@ -84,6 +95,7 @@ def main():
 
     ids_chunks = []
     mask_chunks = []
+    kept_prefixes = []
     boundary_mismatches = 0
     oversized = 0
     for prefix, full in pairs:
@@ -103,6 +115,7 @@ def main():
         mask = [0] * split + [1] * (len(full_ids) - split)
         ids_chunks.append(np.array(full_ids, dtype=dtype))
         mask_chunks.append(np.array(mask, dtype=np.uint8))
+        kept_prefixes.append((prefix, full))
     # Dropping oversized examples doesn't disturb the val split below: finetune_corpus.txt
     # was already pair-shuffled by shuffle_finetune.py, so whichever pairs survive are still
     # in random order relative to each other -- "last val_fraction of what's kept" is
@@ -117,6 +130,21 @@ def main():
 
     n_val = int(kept_pairs * args.val_fraction)
     n_train_pairs = kept_pairs - n_val
+    if args.group_val_by_context:
+        # Walk the boundary forward until the Context actually changes, so a passage's
+        # pairs never straddle the split. Only meaningful when the file was written by
+        # shuffle_finetune.py --group_by_context (which makes same-Context pairs
+        # adjacent); harmless otherwise, since a boundary between two different Contexts
+        # is already where it stops.
+        contexts = [prefix.split("\n", 1)[0] for prefix, _ in kept_prefixes]
+        moved = 0
+        while (n_train_pairs < kept_pairs
+               and contexts[n_train_pairs - 1] == contexts[n_train_pairs]):
+            n_train_pairs += 1
+            moved += 1
+        n_val = kept_pairs - n_train_pairs
+        print(f"snapped the val boundary {moved} pair(s) forward to a Context change "
+              f"-- no Context has pairs in both train and val")
     train_token_count = sum(len(c) for c in ids_chunks[:n_train_pairs])
 
     os.makedirs(args.out_dir, exist_ok=True)
