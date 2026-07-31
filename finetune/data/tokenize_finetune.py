@@ -22,6 +22,18 @@ from tokenizers import Tokenizer
 
 EOT = "<|endoftext|>"
 ANSWER_MARKER = "\nAnswer:"
+NO_CONTEXT_LINE = "Context: N/A"
+
+
+def group_key(prefix):
+    """Must match shuffle_finetune.py's group_key exactly (see its docstring) -- the
+    boundary-snap below only works if it agrees with how shuffle_finetune.py actually
+    grouped pairs. Every no-context pair's Context line is the same literal
+    "Context: N/A", so the fallback there keeps two unrelated no-context pairs that
+    happen to land adjacent after shuffling from being mistaken for one group and merged
+    across the val boundary."""
+    context_line = prefix.split("\n", 1)[0]
+    return prefix if context_line == NO_CONTEXT_LINE else context_line
 
 # Hard safety net for the model's block_size=1024: generate_qa.py caps passages at
 # MAX_PASSAGE_TOKENS=400 tokens so a typical Context+Question+Answer example lands
@@ -136,7 +148,7 @@ def main():
         # shuffle_finetune.py --group_by_context (which makes same-Context pairs
         # adjacent); harmless otherwise, since a boundary between two different Contexts
         # is already where it stops.
-        contexts = [prefix.split("\n", 1)[0] for prefix, _ in kept_prefixes]
+        contexts = [group_key(prefix) for prefix, _ in kept_prefixes]
         moved = 0
         while (n_train_pairs < kept_pairs
                and contexts[n_train_pairs - 1] == contexts[n_train_pairs]):

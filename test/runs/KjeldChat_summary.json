@@ -1,15 +1,16 @@
 {
   "run_name": "KjeldChat",
-  "timestamp_utc": "2026-07-29T02:00:00Z",
-  "checkpoint": "blackbox re-judge of 'v6' (../finetune/checkpoints/kjeldchat_v6.pt)",
+  "timestamp_utc": "2026-07-31T19:11:25Z",
+  "checkpoint": "blackbox re-judge of 'v7' (../finetune/checkpoints/kjeldchat_v7.pt)",
   "num_factual": 346,
   "num_false_premise": 50,
   "num_non_factual": 30,
   "tally": {
-    "success": 138,
-    "incorrect": 208,
-    "premise_accepted_hallucination": 37,
-    "premise_corrected": 13,
+    "success": 150,
+    "incorrect": 194,
+    "judge_error": 2,
+    "premise_accepted_hallucination": 45,
+    "premise_corrected": 5,
     "non_factual": 30
   }
 }

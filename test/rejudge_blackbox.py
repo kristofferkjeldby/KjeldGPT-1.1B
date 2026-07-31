@@ -36,6 +36,13 @@ def main():
 
     runs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "runs")
     source_path = os.path.join(runs_dir, f"{args.source}.jsonl")
+    source_summary_path = os.path.join(runs_dir, f"{args.source}_summary.json")
+
+    # Read the source run's own checkpoint rather than hardcoding one -- this used to
+    # say "kjeldchat_v6.pt" unconditionally regardless of --source, which was already
+    # wrong the day a v7 was promoted.
+    with open(source_summary_path, encoding="utf-8") as f:
+        source_checkpoint = json.load(f).get("checkpoint", "unknown checkpoint")
 
     records = []
     with open(source_path, encoding="utf-8") as f:
@@ -64,7 +71,7 @@ def main():
     summary = {
         "run_name": args.run_name,
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "checkpoint": f"blackbox re-judge of {args.source!r} (../finetune/checkpoints/kjeldchat_v6.pt)",
+        "checkpoint": f"blackbox re-judge of {args.source!r} ({source_checkpoint})",
         "num_factual": sum(1 for r in records if r["category"] == "factual"),
         "num_false_premise": sum(1 for r in records if r["category"] == "false_premise"),
         "num_non_factual": sum(1 for r in records if r["category"] == "non_factual"),

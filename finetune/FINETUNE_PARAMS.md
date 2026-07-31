@@ -5,7 +5,24 @@ teaching the model to answer questions in a fixed format rather than just contin
 prose, grounded by retrieval-augmented generation (RAG) over a passage index built
 from the same corpus (see "Retrieval (RAG)" below).
 
-**Round 4, targeted corpora + passage quality (current):** kept Round 3's recipe
+**Round 5, value discrimination + honest validation (current):** kept Round 4's recipe
+(dropout 0.2, peak_lr 1e-5) fixed and added two things. A **value-discrimination**
+corpus (below under "Corpus") teaches the model to pick the one value in a Context that
+actually answers the question rather than the most salient one -- e.g. a biography's
+opening birth/death dates outcompeting the achievement date a question actually asked
+for. And the train/val split moved from splitting individual Q/A pairs to splitting
+whole Context groups (see "Train/val split" below), so validation measures the model on
+passages it has genuinely never trained on -- what it actually faces at inference, since
+the finetuning corpus and the RAG retrieval pool are disjoint (zero passages shared
+between them). That split is the more honest measurement, but its per-eval noise means
+patience-based early stopping can trip while the run is still improving on the metric
+that actually matters; Round 5 replaced it with a snapshot sweep (see "Checkpoint
+selection" below) that saves a checkpoint every 100 steps and picks the one that scores
+best, rather than the one patience happens to stop on. The current production checkpoint
+is `v7`; see "Round 5 results" for what it bought, and "Evaluation: blackbox vs.
+whitebox" for how it was measured.
+
+**Round 4, targeted corpora + passage quality:** kept Round 3's recipe
 (dropout 0.2, peak_lr 1e-5) fixed and changed only the data, one variable at a time,
 measured each time by `test/qa_loop.py` against a 426-question suite. Three additions,
 in order: a **grounding** corpus aimed at demonstrated context-discarding failures and
@@ -13,7 +30,7 @@ a **false-premise** pair of corpora that teach the model to correct a question's
 assumption instead of playing along (both below under "Corpus"), then two **passage
 quality** fixes to the Context text itself -- clipping every passage back to a complete
 sentence, and stripping IPA pronunciation guides. See "Round 4 results" below for what
-each bought. The current production checkpoint is that arc's last run, `v6`.
+each bought. That arc's last run, `v6`, was the production checkpoint until Round 5.
 
 **Round 3, corpus scale-up + regularization tuning:** the two-stage round that
 established the recipe Round 4 holds fixed.
@@ -112,14 +129,15 @@ differences are in what goes in the fields, not the shape:
 | `finetune_corpus_context_grounding.txt` | 5,014 | `generate_grounding_qa.py` | defer to Context strictly, no embellishment |
 | `finetune_corpus_context_false_premise.txt` | 3,014 | `generate_false_premise_qa.py` | correct a wrong assumption using the Context |
 | `finetune_corpus_no_context_false_premise.txt` | 1,008 | `generate_false_premise_no_context_qa.py` | correct one closed-book |
-| **Total** | **45,528** | | |
+| `finetune_corpus_context_discrimination.txt` | 5,656 | `generate_discrimination_qa.py` | pick the value the question asks for, not the most salient one |
+| **Total** | **51,184** | | |
 
-Tokenized (`meta.json`): 9,089,564 train tokens / 1,004,883 val tokens, 40,976 / 4,552
-pairs. The 10% val split lands on pair boundaries, so no pair's tokens straddle it, and
-pairs are shuffled before splitting so val selection is random rather than
-whichever corpus happened to be concatenated last.
+Tokenized (`meta.json`): 10,348,947 train tokens / 1,325,063 val tokens, 46,066 / 5,118
+pairs. Pairs are grouped and split by Context, not by individual pair -- see "Train/val
+split" below for why and how.
 
-Round 2, for scale: 12,124 pairs across just the first two files.
+Round 2, for scale: 12,124 pairs across just the first two files. Round 4 (v4-v6), for
+scale: 45,528 pairs across the first five.
 
 The three later corpora are all deliberately small next to the main context half. Each
 targets a specific measured failure rather than adding general volume -- the grounding
@@ -155,6 +173,27 @@ persona.
 Generation ran concurrently (`--concurrency 8-10`, bounded `ThreadPoolExecutor` +
 retry-with-backoff on rate limits) since it's I/O-bound waiting on the API.
 
+### Value discrimination
+
+Targets a failure mode distinct from context-discarding: the model reads the Context,
+picks a value that's genuinely present in it, and states it confidently -- just the
+wrong one, when several same-type values (usually years) are in play. A biography's
+opening `(1847 – 1931)` life-dates reliably outcompete the specific achievement date a
+question actually asks about, because both are salient and only one is being asked for.
+
+`generate_discrimination_qa.py` targets this directly: for a passage with several
+distinct values of the same type, it asks for one question per value whose answer is
+*that* value and no other, then validates every pair mechanically (the answer must
+contain its target value and none of the passage's other same-type values, and the
+question must not leak the answer) rather than trusting the prompt alone. Passages come
+from the same `vital_passages.txt` pool the RAG index serves at inference, and every
+passage the retriever surfaces for the test suite's own questions is excluded first
+(`test/dump_test_passages.py`'s sweep, not just the top-1 a single run happens to use),
+so a score gain can't come from having memorized the benchmark's own supporting
+passages. Answers are kept to a short, complete sentence -- terse, but not a bare value
+-- since v6-era grounding failures also showed the model burying a correct answer under
+unsolicited embellishment.
+
 ## Tokenizer
 
 Same tokenizer as the base run -- `../data/tokenizer/tokenizer.json`,
@@ -171,9 +210,22 @@ parallel mask array (`train_mask.bin`/`val_mask.bin`) alongside the token ids.
 so the loss -- and every gradient update -- only reflects producing the answer, not
 reproducing the question or the Context passage.
 
-Verified on every corpus so far, most recently 0/45,528 pairs with a tokenizer boundary
+Verified on every corpus so far, most recently 0/51,184 pairs with a tokenizer boundary
 mismatch at the `Answer:` split point and 0 dropped for exceeding `MAX_EXAMPLE_TOKENS`
 (900) -- `tokenize_finetune.py` reports both counts into `meta.json` on every run.
+
+## Train/val split
+
+`shuffle_finetune.py --group_by_context` and `tokenize_finetune.py
+--group_val_by_context` split by whole Context, not by individual pair: every pair that
+shares a Context stays on the same side of the train/val boundary. A single passage
+carries several pairs (`generate_qa.py` writes 2, `generate_discrimination_qa.py` up to
+4), and the model's only unseen-passage generalization is what val is meant to measure
+-- at inference the finetuning corpus and the RAG retrieval pool share zero passages, so
+val should reflect that, not "a new question about a passage already trained on."
+`shuffle_finetune.py` groups pairs by their Context before shuffling; `tokenize_finetune.py`
+then walks the naive val boundary forward to the next Context change, so no group
+straddles the split.
 
 ## Model architecture
 
@@ -248,7 +300,7 @@ checkpoints against the known failure cases showed stage 3b noticeably more reli
 actually using the given Context, confirming the hypothesis: aggregate val loss reflects
 general next-token prediction across the whole corpus, not specifically "does it defer
 to Context over its own prior", so the two can diverge. **Stage 3b's recipe -- dropout
-0.2, peak_lr 1e-5 -- is the one Round 4 adopted and held fixed across v4, v5 and v6.**
+0.2, peak_lr 1e-5 -- is the one Round 4 adopted and held fixed across v4, v5, v6 and v7.**
 
 `finetune_train.py` gained a `--dropout` CLI override for this (previously hardcoded),
 mirroring the existing `--peak_lr` override -- see "Batch / schedule" above for the
@@ -259,7 +311,7 @@ before/after values.
 All three runs share the stage-3b recipe and the same base checkpoint; only the data
 differs. Whitebox `test/qa_loop.py`, 426 questions, `--rerank --min_context_score 2.0`:
 
-| | v4 | v5 | v6 (production) |
+| | v4 | v5 | v6 |
 |---|---|---|---|
 | corpus change | grounding + false-premise corpora added | + passages clipped to a complete sentence | + IPA pronunciation guides stripped |
 | best val loss | 0.9975 | 0.9438 @ step 2420 | **0.9385 @ step 2700** |
@@ -283,6 +335,54 @@ on the reasoning that both fixes are unambiguously correct regardless of score -
 a passage with a phonetic gloss the model was never trained on is simply worse
 Context -- so the bar was "does not degrade", not "must improve".
 
+## Evaluation: blackbox vs. whitebox
+
+Two separate judges, both via Claude, over the same 426-question suite:
+
+- **Whitebox** (`test/qa_loop.py`) grades an answer against the specific Context it was
+  handed -- did it correctly and specifically use *that* passage. This is the diagnostic
+  view: its failure categories (`rag_precision_failure`, `rag_recall_failure`,
+  `finetuning_grounding_failure`) say which stage of the pipeline -- retrieval or
+  generation -- a wrong answer belongs to, which is what deciding where the next round's
+  effort goes needs.
+- **Blackbox** (`test/rejudge_blackbox.py`) re-judges the same generated answers against
+  real-world correctness instead, with no knowledge of what Context was retrieved. This
+  is the promotion metric, since it's what a user actually experiences -- whether the
+  final answer is right, not which internal category a wrong-but-context-mismatched
+  answer happened to fall into. A model can be blackbox-correct on a question whitebox
+  marks as a retrieval failure, if its own pretrained knowledge already had the answer
+  regardless of what passage retrieval handed it.
+
+Both are reported below; blackbox decides promotion, whitebox stays the tool for
+deciding what the next round's corpus should target.
+
+## Round 5 results
+
+Same recipe as Round 4 (dropout 0.2, peak_lr 1e-5), only the corpus and the train/val
+split differ. `success` + `premise_corrected` is the headline count both tables sum to:
+
+| whitebox | v6 | v7 (production) |
+|---|---|---|
+| success | 124 | **128** |
+| finetuning grounding failure | 97 | **91** |
+| false premise accepted | 37 | 45 |
+| premise corrected | 13 | 5 |
+
+| blackbox (decisive) | v6 | v7 (production) |
+|---|---|---|
+| success | 138 | **150** |
+| premise corrected | 13 | 5 |
+| **success + premise corrected** | 151 | **155** |
+
+v7's blackbox gain is concentrated in `success` (+12) with false-premise correction
+trading down (13→5) -- net positive, but the two capabilities don't move together.
+`finetuning_grounding_failure` falling 97→91 despite a materially bigger corpus and a
+harder validation split is the value-discrimination corpus doing its intended job: v6's
+grounding failures were dominated by a real value from the Context being available but
+the wrong one getting picked (a biography's life-dates over the achievement date a
+question asked for), which is exactly the pattern the discrimination pairs are built to
+correct.
+
 ## Console / eval / checkpoint cadence
 
 Step-based, not time-based like the base run (`base_train.py`'s 300s/1800s/3600s
@@ -296,7 +396,21 @@ assumes a multi-day run; this one finishes in minutes):
 | `eval_iters` | 20 |
 | `patience` | 5 evals (code default). Round 4 ran `--patience 10` throughout -- at
   eval_every=10 the val curve is noisy enough that 5 evals sometimes stopped a run that
-  was still improving. |
+  was still improving. Round 5 runs with a very large `--patience` instead and selects
+  the checkpoint by sweep -- see "Checkpoint selection" below. |
+
+## Checkpoint selection
+
+Round 5's context-grouped val split (see "Train/val split") is the honest measurement,
+but it's noisy enough per-eval that a fixed patience window can stop a run before it's
+actually done improving on the metric that decides promotion. `--snapshot_every 100`
+saves a permanent, separately-named checkpoint (`kjeldchat_step<N>.pt`) every 100 steps
+in addition to the usual rolling/best-val files, so the run can be trained past any
+early-stopping point and every candidate step stays on disk to evaluate afterward. With
+`--patience` set very large, training runs its full `--epochs`-derived step budget, and
+the checkpoint that scores best on the blackbox suite (not the one with the lowest val
+loss) is the one promoted -- v7 is `kjeldchat_step2700.pt` from a run trained to 3,789
+steps.
 
 ## Resuming / checkpoint naming
 
@@ -313,11 +427,13 @@ assumes a multi-day run; this one finishes in minutes):
   - `kjeldchat_best.pt` -- saved immediately every time val loss improves, independent
     of that cadence, so the true best-val weights are never missed between periodic
     saves. This is the one that gets kept.
-- Locally, each round's `kjeldchat_best.pt` is downloaded and renamed to its run name --
-  `checkpoints/kjeldchat_v4.pt`, `_v5.pt`, `_v6.pt` -- so every tested checkpoint stays
-  on disk and reproducible against its `test/runs/` entry. `chat.py`, `chat_gui.py` and
-  `test/qa_loop.py` name the current production one directly (`kjeldchat_v6.pt`);
-  promoting a new run is a one-line change in each.
+- Locally, each round's promoted checkpoint is downloaded and renamed to its run name --
+  `checkpoints/kjeldchat_v4.pt`, `_v5.pt`, `_v6.pt`, `_v7.pt` -- so every tested
+  checkpoint stays on disk and reproducible against its `test/runs/` entry. `chat.py`,
+  `chat_gui.py` and `test/qa_loop.py` name the current production one directly
+  (`kjeldchat_v7.pt`); promoting a new run is a one-line change in each. Round 5's
+  promoted checkpoint isn't `kjeldchat_best.pt` (lowest val loss) but a specific
+  `--snapshot_every` step chosen by the sweep in "Checkpoint selection" above.
 
 ## Hardware
 
@@ -328,19 +444,30 @@ comfortably a sit-and-watch job rather than a multi-day one.
 
 ## Launch command
 
-Round 4 -- every run uses exactly these flags. The recipe is held fixed so that runs
-differ only by their corpus and stay comparable:
+Round 5:
+
+```
+cd finetune/data
+python3 shuffle_finetune.py --group_by_context
+python3 tokenize_finetune.py --group_val_by_context
+cd ..
+python3 finetune_train.py --dropout 0.2 --peak_lr 1e-5 --patience 999999 \
+    --snapshot_every 100
+```
+
+`--resume` defaults to `../base/checkpoints/kjeldgpt.pt`; if you point it at a *copy* of
+that checkpoint instead (training on a remote box, say), verify the copy by MD5 first --
+a run resumed from a different base is not comparable to the others, and nothing in the
+output will reveal that. After training, pick the promoted checkpoint by running
+`test/qa_loop.py` (and `test/rejudge_blackbox.py` for the decisive score) against each
+`kjeldchat_step<N>.pt` snapshot -- see "Checkpoint selection" above.
+
+Round 4 (v4-v6), for reference -- pair-level split, patience-based stopping:
 
 ```
 cd finetune
 python3 finetune_train.py --dropout 0.2 --peak_lr 1e-5 --patience 10
 ```
-
-Run `data/shuffle_finetune.py` and `data/tokenize_finetune.py` first. `--resume` defaults
-to `../base/checkpoints/kjeldgpt.pt`; if you point it at a *copy* of that checkpoint
-instead (training on a remote box, say), verify the copy by MD5 first -- a run resumed
-from a different base is not comparable to the others, and nothing in the output will
-reveal that.
 
 ## Retrieval (RAG)
 

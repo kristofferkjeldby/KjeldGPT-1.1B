@@ -13,6 +13,19 @@ import os
 import random
 
 EOT = "<|endoftext|>"
+NO_CONTEXT_LINE = "Context: N/A"
+
+
+def group_key(pair):
+    """The Context line groups pairs that share a real passage. Every no-context pair's
+    Context line is the same literal string "Context: N/A" (see generate_no_context_qa.py)
+    though, and there's no shared passage to protect val-purity for in that case -- each
+    no-context example is independent -- so it falls back to the whole pair text, which is
+    unique per example. Content-based (not position-based) so tokenize_finetune.py's
+    --group_val_by_context can recompute the identical key per-pair with no shared state
+    between the two separate script invocations."""
+    context_line = pair.split("\n", 1)[0]
+    return pair if context_line == NO_CONTEXT_LINE else context_line
 
 
 def main():
@@ -43,9 +56,7 @@ def main():
     if args.group_by_context:
         groups = {}
         for p in pairs:
-            # First line of each block is "Context: ...", the whole passage on one
-            # physical line (generate_qa.py's truncate_to_token_budget guarantees it).
-            groups.setdefault(p.split("\n", 1)[0], []).append(p)
+            groups.setdefault(group_key(p), []).append(p)
         ordered = list(groups.values())
         rng.shuffle(ordered)
         pairs = [p for group in ordered for p in group]

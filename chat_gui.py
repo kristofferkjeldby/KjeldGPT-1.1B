@@ -69,7 +69,7 @@ PLACEHOLDER_HTML = """
   <div>Ask a question</div>
   <div>
     Each question is answered independently.<br>
-    Answers are machine-generated and unreviewed &mdash; they can be wrong.
+    Answers are machine-generated and unreviewed - they can be wrong.
   </div>
 </div>
 """
@@ -461,7 +461,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "finetune",
-                                               "checkpoints", "kjeldchat_v6.pt"))
+                                               "checkpoints", "kjeldchat_v7.pt"))
     parser.add_argument("--tokenizer", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                "base", "data", "tokenizer", "tokenizer.json"))
