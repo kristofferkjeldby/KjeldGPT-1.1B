@@ -22,6 +22,7 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -121,18 +122,26 @@ def plot_loss_vs_step(evals, floor, out_path):
 
 
 def plot_loss_vs_x(x, val_loss, fit_x, fit_y, final_x, final_y, xlabel, title, out_path, l_inf, a, alpha, floor):
+    # Subtracting l_inf turns the power law L = l_inf + a*t^-alpha into a*t^-alpha,
+    # which is a straight line once both axes are log-scaled -- the raw loss on a
+    # semi-log axis is a curve, not a line, since it's decaying towards an offset.
     plt.figure(figsize=(9, 5.2))
-    plt.scatter(x, val_loss, color="tab:orange", s=14, label="val loss (eval points)")
-    plt.plot(fit_x, fit_y, color="tab:blue", linewidth=1.5,
-              label=f"power-law fit: L={l_inf:.3f}+{a:.2f}·t$^{{-{alpha:.3f}}}$")
-    plt.scatter([final_x], [final_y], color="tab:blue", marker="*", s=180,
+    plt.scatter(x, val_loss - l_inf, color="tab:orange", s=14, label="val loss (eval points)")
+    plt.plot(fit_x, fit_y - l_inf, color="tab:blue", linewidth=1.5,
+              label=f"power-law fit: L−{l_inf:.3f}={a:.2f}·t$^{{-{alpha:.3f}}}$")
+    plt.scatter([final_x], [final_y - l_inf], color="tab:blue", marker="*", s=180,
                 label=f"fit-predicted final loss ({final_y:.3f})", zorder=5)
     plt.axvline(final_x, color="gray", linestyle="--", linewidth=1)
-    plt.axhline(floor, color="gray", linestyle=":", linewidth=1,
-                label=f"Chinchilla predicted floor ({floor:.3f})")
+    if floor > l_inf:
+        plt.axhline(floor - l_inf, color="gray", linestyle=":", linewidth=1,
+                    label=f"Chinchilla predicted floor ({floor:.3f})")
     plt.xscale("log")
+    plt.yscale("log")
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda y, _: f"{y:g}"))
+    ax.yaxis.set_minor_formatter(mticker.FuncFormatter(lambda y, _: f"{y:g}"))
     plt.xlabel(xlabel)
-    plt.ylabel("val loss (nats/token)")
+    plt.ylabel("val loss (nats/token, log scale)")
     plt.title(title)
     plt.legend()
     plt.grid(alpha=0.3, which="both")
@@ -193,14 +202,14 @@ def main():
     fit_loss = power_law(fit_tokens, l_inf, a, alpha)
     plot_loss_vs_x(
         tokens, val_loss, fit_tokens, fit_loss, final_tokens, final_loss,
-        "tokens processed (log scale)", "KjeldGPT 1.1B — val loss vs tokens (log-x), with power-law extrapolation",
+        "tokens processed (log scale)", "KjeldGPT 1.1B — val loss vs tokens (log-log), with power-law extrapolation",
         os.path.join(args.out_dir, "loss_vs_tokens_loglog.png"), l_inf, a, alpha, floor,
     )
     fit_flops = 6 * n_params * fit_tokens
     plot_loss_vs_x(
         flops, val_loss, fit_flops, fit_loss, final_flops, final_loss,
         "training compute, FLOPs = 6·N·tokens (log scale)",
-        "KjeldGPT 1.1B — val loss vs compute (log-x), Kaplan/Chinchilla-style axis",
+        "KjeldGPT 1.1B — val loss vs compute (log-log)",
         os.path.join(args.out_dir, "loss_vs_flops_loglog.png"), l_inf, a, alpha, floor,
     )
 
