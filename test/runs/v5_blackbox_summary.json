@@ -1,0 +1,15 @@
+{
+  "run_name": "v5_blackbox",
+  "timestamp_utc": "2026-08-02T20:12:23Z",
+  "checkpoint": "blackbox re-judge of 'v5' (../finetune/checkpoints/kjeldchat_v5.pt)",
+  "num_factual": 346,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "incorrect": 203,
+    "success": 143,
+    "premise_accepted_hallucination": 42,
+    "premise_corrected": 8,
+    "non_factual": 30
+  }
+}

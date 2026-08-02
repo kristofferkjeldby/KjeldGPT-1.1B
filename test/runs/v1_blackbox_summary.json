@@ -1,0 +1,15 @@
+{
+  "run_name": "v1_blackbox",
+  "timestamp_utc": "2026-08-02T19:48:25Z",
+  "checkpoint": "blackbox re-judge of 'v1' (/Users/kjeldby/Python/corpus/tests/../finetune/checkpoints/kjeldchat_best.pt)",
+  "num_factual": 346,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "incorrect": 239,
+    "success": 107,
+    "premise_accepted_hallucination": 48,
+    "premise_corrected": 2,
+    "non_factual": 30
+  }
+}
