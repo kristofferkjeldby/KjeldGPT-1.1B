@@ -64,7 +64,7 @@ def plot_trend(runs, out_path, labels=None):
     ax.set_xticks(x)
     ax.set_xticklabels(labels or [r["run_name"] for r in runs], rotation=20, ha="right")
     ax.set_ylabel("questions")
-    ax.set_title("Test results v1 to v7")
+    ax.set_title("Test results v1 to v8")
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", alpha=0.3)
     ax.set_axisbelow(True)

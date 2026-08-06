@@ -44,6 +44,14 @@
 # Checkpoints -- multi-GB model weights, not source
 /base/checkpoints/
 /finetune/checkpoints/
+/llama/checkpoints/
+
+# Llama SFT export -- reproducible from finetune/data/finetune_corpus_shuffled.txt via
+# llama/data/export_sft_data.py; the results (test/runs/llama_v1*) are tracked, this
+# derived data isn't.
+/llama/data/train.jsonl
+/llama/data/val.jsonl
+/llama/data/meta.json
 
 # Hugging Face Hub export -- pushed there directly, not to GitHub
 /base/hf_export/

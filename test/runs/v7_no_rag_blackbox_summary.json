@@ -1,0 +1,14 @@
+{
+  "run_name": "v7_no_rag_blackbox",
+  "timestamp_utc": "2026-08-03T21:03:24Z",
+  "checkpoint": "blackbox re-judge of 'v7_no_rag' (/Users/kjeldby/Projects/KjeldGPT-1.1B/test/../finetune/checkpoints/kjeldchat_v7.pt)",
+  "num_factual": 346,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 53,
+    "incorrect": 293,
+    "premise_accepted_hallucination": 50,
+    "non_factual": 30
+  }
+}

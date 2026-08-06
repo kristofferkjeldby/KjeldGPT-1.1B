@@ -53,11 +53,13 @@ CATEGORY_LABEL = {
 }
 
 DEFAULT_RUNS = [
-    "KjeldChat", "gpt-3.5-turbo", "gpt-3.5-turbo-instruct",
-    "davinci-002", "babbage-002", "tinyllama-1.1b-chat", "gpt2-xl",
+    "KjeldChat", "v7_no_rag_blackbox", "llama_v1_blackbox", "gpt-3.5-turbo",
+    "gpt-3.5-turbo-instruct", "davinci-002", "babbage-002", "tinyllama-1.1b-chat", "gpt2-xl",
 ]
 DEFAULT_LABELS = {
-    "KjeldChat": "KjeldChat\n(finetune + RAG)",
+    "KjeldChat": "KjeldChat\n(finetune/RAG)",
+    "v7_no_rag_blackbox": "KjeldChat\n(finetune, no RAG)",
+    "llama_v1_blackbox": "Llama 3.2 1B\n(finetune/RAG)",
     "gpt-3.5-turbo": "GPT-3.5\nturbo",
     "gpt-3.5-turbo-instruct": "GPT-3.5\nturbo-instruct",
     "davinci-002": "davinci-002",
@@ -109,7 +111,7 @@ def main():
     ax.set_xticklabels(labels)
     ax.set_ylabel("questions (of 426)")
     ax.set_title(
-        "Blackbox comparison -- KjeldChat vs. external/hobby-scale models\n"
+        "Blackbox comparison -- finetune/RAG systems vs. external/hobby-scale models\n"
         "same 426 questions"
     )
     ax.spines[["top", "right"]].set_visible(False)

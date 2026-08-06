@@ -177,7 +177,7 @@ def main():
     parser.add_argument("--num_non_factual", type=int, default=30)
     parser.add_argument("--checkpoint", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                              "..", "finetune", "checkpoints", "kjeldchat_v7.pt"))
+                                              "..", "finetune", "checkpoints", "kjeldchat_v8.pt"))
     parser.add_argument("--tokenizer", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                               "..", "base", "data", "tokenizer", "tokenizer.json"))

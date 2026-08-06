@@ -18,25 +18,33 @@ shortlist directly against the question. It can't help cases where nothing in th
 top-10 is relevant at all -- a genuine coverage/embedding gap, not a ranking problem,
 and not what this is meant to fix.
 
-Model: cross-encoder/ms-marco-MiniLM-L-6-v2, a small (~22M param) cross-encoder
-finetuned for exactly this passage-reranking task on the MS MARCO dataset -- same size
-class as the bi-encoder, runs fine on CPU, no ongoing API cost. Loaded from a local
-snapshot (see CROSS_ENCODER_MODEL_PATH), same offline-first reasoning as rag_retrieve.py's
+Model: cross-encoder/ms-marco-MiniLM-L-12-v2 (~34M params, upgraded from L-6-v2 after
+test/runs/v7_rag_precision_failure_diagnosis.jsonl found 39/82 rag_precision_failure
+cases were "lookup_issue" -- the correct passage already sat in the bi-encoder's own
+top-10, L-6 just never promoted it to rank 1. rag/compare_rerankers.py's one-off
+comparison found L-12 fixes 5/39 of those outright with zero regressions -- a real but
+modest gain, not a fix for the harder superlative-among-many-candidates cases (longest
+river, largest desert, etc.), which still landed at rank 2-5 even under L-12). Still
+small enough to run fine on CPU, no ongoing API cost. Loaded from a local snapshot (see
+CROSS_ENCODER_MODEL_PATH), same offline-first reasoning as rag_retrieve.py's
 EMBED_MODEL_PATH: saved once via
-    CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2').save(CROSS_ENCODER_MODEL_PATH)
+    CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2').save(CROSS_ENCODER_MODEL_PATH)
 so chat.py keeps working even if the HF cache is ever cleared.
 
 The cross-encoder's output is a raw relevance logit (unbounded, roughly -11 to +11), not
 a cosine similarity, so the two scales are not interchangeable. chat.py's
 --min_context_score default of 2.0 is calibrated for this scale; running --no-rerank
-requires passing the bi-encoder-scale floor explicitly (--min_context_score 0.55).
+requires passing the bi-encoder-scale floor explicitly (--min_context_score 0.55). L-12's
+score range looked comparable to L-6's on a handful of spot checks (not a full
+recalibration), so 2.0 is kept as-is -- revisit if precision/recall on this threshold
+ever looks off after the swap.
 """
 import os
 
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 
 CROSS_ENCODER_MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                         "models", "cross-encoder-ms-marco-MiniLM-L6-v2")
+                                         "models", "cross-encoder-ms-marco-MiniLM-L12-v2")
 
 
 class Reranker:
