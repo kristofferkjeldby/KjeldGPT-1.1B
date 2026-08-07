@@ -8,8 +8,8 @@
   "num_false_premise": 50,
   "num_non_factual": 30,
   "tally": {
-    "success": 53,
-    "incorrect": 293,
+    "success": 76,
+    "incorrect": 270,
     "premise_accepted_hallucination": 49,
     "premise_corrected": 1,
     "non_factual": 30
