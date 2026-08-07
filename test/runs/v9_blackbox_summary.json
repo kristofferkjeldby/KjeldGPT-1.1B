@@ -1,5 +1,5 @@
 {
-  "run_name": "KjeldChat",
+  "run_name": "v9_blackbox",
   "timestamp_utc": "2026-08-07T06:43:54Z",
   "checkpoint": "blackbox re-judge of 'v9' (/Users/kjeldby/Projects/KjeldGPT-1.1B/test/../finetune/checkpoints/kjeldchat_v8.pt)",
   "num_factual": 346,

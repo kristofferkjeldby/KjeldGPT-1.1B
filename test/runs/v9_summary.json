@@ -1,0 +1,22 @@
+{
+  "run_name": "v9",
+  "timestamp_utc": "2026-08-07T06:31:14Z",
+  "checkpoint": "/Users/kjeldby/Projects/KjeldGPT-1.1B/test/../finetune/checkpoints/kjeldchat_v8.pt",
+  "index_dir": "default",
+  "rerank": true,
+  "min_context_score": 2.0,
+  "num_factual": 100,
+  "num_factual_complex": 146,
+  "num_factual_open": 100,
+  "num_false_premise": 50,
+  "num_non_factual": 30,
+  "tally": {
+    "success": 144,
+    "rag_precision_failure": 96,
+    "finetuning_grounding_failure": 77,
+    "rag_recall_failure": 29,
+    "premise_accepted_hallucination": 47,
+    "premise_corrected": 3,
+    "non_factual": 30
+  }
+}

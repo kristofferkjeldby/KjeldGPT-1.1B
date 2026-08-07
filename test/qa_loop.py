@@ -198,9 +198,9 @@ def main():
                               "--rerank, pass something like 2.0 instead (cross-encoder "
                               "logit scale, not cosine similarity)")
     parser.add_argument("--length", type=int, default=100)
-    parser.add_argument("--temperature", type=float, default=0.8)
+    parser.add_argument("--temperature", type=float, default=0.3)
     parser.add_argument("--top_k", type=int, default=50)
-    parser.add_argument("--repetition_penalty", type=float, default=1.3)
+    parser.add_argument("--repetition_penalty", type=float, default=1.1)
     parser.add_argument("--judge_model", type=str, default="claude-sonnet-5")
     parser.add_argument("--judge_concurrency", type=int, default=5)
     parser.add_argument("--resume_from_raw", action="store_true",

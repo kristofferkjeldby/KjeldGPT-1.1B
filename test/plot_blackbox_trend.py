@@ -6,7 +6,7 @@ over the blackbox tally's smaller category set (no rag_*/finetuning_grounding_fa
 those are whitebox-only, since blackbox judging never sees what Context was retrieved).
 
 Run from within test/ once there are 2+ *_blackbox_summary.json files in runs/:
-    python3 plot_blackbox_trend.py --runs v1_blackbox v2_blackbox v3_blackbox v4_blackbox v5_blackbox v6_blackbox KjeldChat --labels v1 v2 v3 v4 v5 v6 v7
+    python3 plot_blackbox_trend.py --runs v1_blackbox v2_blackbox v3_blackbox v4_blackbox v5_blackbox v6_blackbox v7_blackbox v8_blackbox KjeldChat --labels v1 v2 v3 v4 v5 v6 v7 v8 v9
 """
 import argparse
 import glob
@@ -64,7 +64,7 @@ def plot_trend(runs, out_path, labels=None):
     ax.set_xticks(x)
     ax.set_xticklabels(labels or [r["run_name"] for r in runs], rotation=20, ha="right")
     ax.set_ylabel("questions")
-    ax.set_title("Test results v1 to v8")
+    ax.set_title("Test results v1 to v9")
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", alpha=0.3)
     ax.set_axisbelow(True)

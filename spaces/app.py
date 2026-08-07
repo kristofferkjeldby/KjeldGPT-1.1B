@@ -114,9 +114,9 @@ print(f"  {retriever.index.meta['num_passages']:,} passages indexed", flush=True
 # min_context_score on the reranker's cross-encoder scale (2.0), not the bi-encoder's.
 args = types.SimpleNamespace(
     length=100,
-    temperature=0.8,
+    temperature=0.3,
     top_k=50,
-    repetition_penalty=1.3,
+    repetition_penalty=1.1,
     min_context_score=2.0,
     debug=False,
 )
