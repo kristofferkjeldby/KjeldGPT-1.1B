@@ -74,7 +74,7 @@ def main():
     parser.add_argument("--num_non_factual", type=int, default=30)
     parser.add_argument("--checkpoint", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                              "..", "finetune", "checkpoints", "kjeldchat_v8.pt"))
+                                              "..", "finetune", "checkpoints", "kjeldchat_v7.pt"))
     parser.add_argument("--tokenizer", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                               "..", "base", "data", "tokenizer", "tokenizer.json"))
@@ -82,9 +82,9 @@ def main():
     parser.add_argument("--rerank", action="store_true")
     parser.add_argument("--min_context_score", type=float, default=0.55)
     parser.add_argument("--length", type=int, default=100)
-    parser.add_argument("--temperature", type=float, default=0.3)
+    parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top_k", type=int, default=50)
-    parser.add_argument("--repetition_penalty", type=float, default=1.1)
+    parser.add_argument("--repetition_penalty", type=float, default=1.3)
     parser.add_argument("--judge_model", type=str, default="claude-sonnet-5")
     parser.add_argument("--judge_concurrency", type=int, default=5)
     parser.add_argument("--run_name", type=str, default=None)

@@ -48,7 +48,7 @@ INDEX_REPO = "kristofferkjeldby/KjeldChat-1.1B-rag-index"
 # so downloading into them means those modules need no Space-specific changes.
 INDEX_DIR = os.path.join(ROOT, "rag", "data", "passage_embeddings")
 EMBED_DIR = os.path.join(ROOT, "rag", "models", "all-MiniLM-L6-v2")
-RERANK_DIR = os.path.join(ROOT, "rag", "models", "cross-encoder-ms-marco-MiniLM-L12-v2")
+RERANK_DIR = os.path.join(ROOT, "rag", "models", "cross-encoder-ms-marco-MiniLM-L6-v2")
 
 # 100 tokens at KjeldChat's size generates in a few seconds on ZeroGPU's Blackwell, but
 # the budget also covers bi-encoder retrieval and cross-encoder reranking on the same
@@ -70,7 +70,7 @@ def fetch_artifacts():
 
     print("Downloading retrieval encoders ...", flush=True)
     snapshot_download("sentence-transformers/all-MiniLM-L6-v2", local_dir=EMBED_DIR)
-    snapshot_download("cross-encoder/ms-marco-MiniLM-L-12-v2", local_dir=RERANK_DIR)
+    snapshot_download("cross-encoder/ms-marco-MiniLM-L-6-v2", local_dir=RERANK_DIR)
 
     return weights, config_path, tokenizer_path
 
@@ -114,9 +114,9 @@ print(f"  {retriever.index.meta['num_passages']:,} passages indexed", flush=True
 # min_context_score on the reranker's cross-encoder scale (2.0), not the bi-encoder's.
 args = types.SimpleNamespace(
     length=100,
-    temperature=0.3,
+    temperature=0.8,
     top_k=50,
-    repetition_penalty=1.1,
+    repetition_penalty=1.3,
     min_context_score=2.0,
     debug=False,
 )

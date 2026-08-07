@@ -10,11 +10,12 @@
   "num_false_premise": 50,
   "num_non_factual": 30,
   "tally": {
-    "finetuning_grounding_failure": 136,
-    "rag_precision_failure": 100,
-    "success": 83,
-    "rag_recall_failure": 27,
-    "premise_accepted_hallucination": 48,
+    "finetuning_grounding_failure": 123,
+    "rag_precision_failure": 93,
+    "success": 104,
+    "rag_recall_failure": 26,
+    "no_context_expected": 1,
+    "premise_accepted_hallucination": 47,
     "premise_corrected": 2,
     "non_factual": 30
   }

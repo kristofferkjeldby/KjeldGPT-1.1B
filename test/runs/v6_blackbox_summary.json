@@ -6,9 +6,9 @@
   "num_false_premise": 50,
   "num_non_factual": 30,
   "tally": {
-    "success": 140,
-    "incorrect": 206,
-    "premise_accepted_hallucination": 37,
+    "success": 179,
+    "incorrect": 168,
+    "premise_accepted_hallucination": 36,
     "premise_corrected": 13,
     "non_factual": 30
   }

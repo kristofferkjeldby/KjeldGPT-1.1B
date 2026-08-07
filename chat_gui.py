@@ -461,14 +461,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "finetune",
-                                               "checkpoints", "kjeldchat_v8.pt"))
+                                               "checkpoints", "kjeldchat_v7.pt"))
     parser.add_argument("--tokenizer", type=str,
                          default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                "base", "data", "tokenizer", "tokenizer.json"))
     parser.add_argument("--length", type=int, default=100, help="max tokens generated per reply")
-    parser.add_argument("--temperature", type=float, default=0.3)
+    parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top_k", type=int, default=50)
-    parser.add_argument("--repetition_penalty", type=float, default=1.1)
+    parser.add_argument("--repetition_penalty", type=float, default=1.3)
     parser.add_argument("--context", action=argparse.BooleanOptionalAction, default=True,
                          help="--no-context for closed-book (no retrieval at all)")
     parser.add_argument("--index_dir", type=str, default=DEFAULT_INDEX_DIR)
